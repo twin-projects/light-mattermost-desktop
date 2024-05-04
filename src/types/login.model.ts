@@ -1,8 +1,3 @@
-export type LoginResponse = {
-	token: string, // token
-	user: UserModel, // user
-}
-
 export type UserModel = {
 	username: string,
 	email: string,

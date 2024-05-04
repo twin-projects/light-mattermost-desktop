@@ -19,7 +19,9 @@
 		email = response.email;
 		nickname = response.nickname;
 	};
+
 	const logout = async () => {
+		await invoke('logout');
 		firstName = '';
 		lastName = '';
 		username = '';
