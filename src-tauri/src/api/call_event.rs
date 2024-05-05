@@ -1,14 +1,15 @@
 use serde::{Deserialize, Serialize};
 
 pub enum ApiEvent {
-    LoginEvent(String, String)
+    LoginEvent(String, String),
 }
 
 pub enum Response {
     LoginResponse(
-        String, // token
+        String,       // token
         UserResponse, // user
-    )
+    ),
+    _PlaceholderForPattern_,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -23,7 +24,10 @@ pub struct Timezone {
     pub automatic_timezone: String,
     #[serde(rename(serialize = "manualTimezone", deserialize = "manualTimezone"))]
     pub manual_timezone: String,
-    #[serde(rename(serialize = "useAutomaticTimezone", deserialize = "useAutomaticTimezone"))]
+    #[serde(rename(
+        serialize = "useAutomaticTimezone",
+        deserialize = "useAutomaticTimezone"
+    ))]
     pub use_automatic_timezone: String,
 }
 
@@ -50,3 +54,4 @@ pub struct UserDetails {
     pub last_name: String,
     pub roles: String,
 }
+
