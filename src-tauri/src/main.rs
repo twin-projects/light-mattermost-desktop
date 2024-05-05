@@ -1,8 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::ops::Deref;
-
 use reqwest::Client;
 use serde::Serialize;
 use tauri::State;
@@ -12,7 +10,7 @@ use url::Url;
 use api::call_event::{ApiEvent, Response};
 use api::handle_request;
 
-use crate::api::call_event::{UserDetails, UserResponse};
+use crate::api::call_event::{Team, UserDetails};
 
 mod api;
 
@@ -22,6 +20,10 @@ enum NativeError {
     ServerNotSelected,
     #[error("Unexpected response from mattermost server")]
     UnexpectedResponse,
+    #[error("Unable to fetch teams from mattermost server")]
+    FetchTeams,
+    #[error("Unable to perform login, mattermost server return an error")]
+    PerformLogin,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -58,6 +60,7 @@ pub(crate) struct UserState {
     #[serde(skip_serializing)]
     token: Option<String>,
     user_details: Option<UserDetails>,
+    teams: Option<Vec<Team>>,
 }
 
 impl Default for UserState {
@@ -65,6 +68,7 @@ impl Default for UserState {
         Self {
             token: None,
             user_details: None,
+            teams: None,
         }
     }
 }
@@ -85,49 +89,60 @@ impl Default for ServerState {
     }
 }
 
+struct FeValue<T> {
+    payload: T,
+}
+
 #[tauri::command]
 async fn login(
     login: String,
     password: String,
-    state_mutex: State<'_, Mutex<UserState>>,
+    user_state_mutex: State<'_, Mutex<UserState>>,
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
 ) -> Result<UserDetails, Error> {
+    let mut user_state = user_state_mutex.lock().await;
     let server_state = server_state_mutex.lock().await;
-    let current_url = server_state
-        .current
-        .as_ref()
-        .ok_or_else(|| NativeError::ServerNotSelected)?;
+    let current_url = server_state.current.as_ref().unwrap();
     let result = handle_request(
         &http_client,
         current_url,
         &ApiEvent::LoginEvent(login, password),
+        None,
     )
     .await?;
-    let Response::LoginResponse(token, user) = result else {
-        return Err(NativeError::UnexpectedResponse)?;
-    };
-    let mut state = state_mutex.lock().await;
-    state.token = Some(token);
-    let UserResponse {
-        username,
-        email,
-        nickname,
-        first_name,
-        last_name,
-        roles,
-        ..
-    } = user;
-    let user_details = UserDetails {
-        username,
-        email,
-        nickname,
-        first_name,
-        last_name,
-        roles,
-    };
-    state.user_details = Some(user_details.clone());
-    Ok(user_details)
+    match &response {
+        Response::LoginResponse(token, _id, username) => {
+            user_state.token = Some(token.to_owned());
+            Ok(UserDetails {
+                username: username.to_owned(),
+            })
+        }
+        Response::MyTeams(_) => Err(Error::PoisonError("Incorrect type".to_string())),
+    }
+}
+
+#[tauri::command]
+async fn my_teams(
+    user_state_mutex: State<'_, Mutex<UserState>>,
+    server_state_mutex: State<'_, Mutex<ServerState>>,
+    http_client: State<'_, Client>,
+) -> Result<Vec<Team>, Error> {
+    let mut user_state = user_state_mutex.lock().await;
+    let token_option = user_state.token.as_ref();
+    let server_state = server_state_mutex.lock().await;
+    let current_url = server_state.current.as_ref().unwrap();
+    let result =
+        handle_request(&http_client, current_url, &ApiEvent::MyTeams, token_option).await?;
+    match &response {
+        Response::LoginResponse(token, id, username) => {
+            Err(Error::PoisonError("Incorrect type".to_string()))
+        }
+        Response::MyTeams(teams) => {
+            user_state.teams = Some(teams.to_owned());
+            Ok(teams.to_owned())
+        }
+    }
 }
 
 #[tauri::command]
@@ -161,7 +176,6 @@ async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> Resul
 }
 
 #[tokio::main]
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
 async fn main() {
     tracing_subscriber::fmt::init();
 
@@ -174,7 +188,8 @@ async fn main() {
             login,
             logout,
             add_server,
-            get_current_server
+            get_current_server,
+            my_teams
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
