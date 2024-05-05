@@ -1,8 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::ops::Deref;
-
 use log::error;
 use reqwest::Client;
 use serde::Serialize;
@@ -17,7 +15,17 @@ use crate::api::call_event::{UserDetails, UserResponse};
 mod api;
 
 #[derive(Debug, thiserror::Error)]
+enum NativeError {
+    #[error("No mattermost server is selected")]
+    ServerNotSelected,
+    #[error("Unexpected response from mattermost server")]
+    UnexpectedResponse,
+}
+
+#[derive(Debug, thiserror::Error)]
 enum Error {
+    #[error(transparent)]
+    Native(#[from] NativeError),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
@@ -28,7 +36,9 @@ enum Error {
 
 impl serde::Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: serde::ser::Serializer {
+    where
+        S: serde::ser::Serializer,
+    {
         serializer.serialize_str(self.to_string().as_ref())
     }
 }
@@ -77,43 +87,43 @@ async fn login(
     password: String,
     state_mutex: State<'_, Mutex<UserState>>,
     server_state_mutex: State<'_, Mutex<ServerState>>,
-    http_client_mutex: State<'_, Mutex<Client>>,
+    http_client: State<'_, Client>,
 ) -> Result<UserDetails, Error> {
-    let mut state = state_mutex.lock().await;
     let server_state = server_state_mutex.lock().await;
-    let current_url = server_state.current.as_ref().unwrap();
-    let http_client = http_client_mutex.lock().await;
-    let client = http_client.deref();
-    let result = handle_request(client, current_url, &ApiEvent::LoginEvent(login, password)).await;
-    match result {
-        Ok(data) => {
-            match data {
-                Response::LoginResponse(token, user) => {
-                    state.token = Some(token);
-                    let UserResponse {
-                        username,
-                        email,
-                        nickname,
-                        first_name,
-                        last_name,
-                        roles,
-                        ..
-                    } = user;
-                    let user_details = UserDetails {
-                        username,
-                        email,
-                        nickname,
-                        first_name,
-                        last_name,
-                        roles,
-                    };
-                    state.user_details = Some(user_details.clone());
-                    Ok(user_details)
-                }
-            }
-        }
-        Err(error) => Err(Error::Standard(error))
-    }
+    let current_url = server_state
+        .current
+        .as_ref()
+        .ok_or_else(|| NativeError::ServerNotSelected)?;
+    let result = handle_request(
+        &http_client,
+        current_url,
+        &ApiEvent::LoginEvent(login, password),
+    )
+    .await?;
+    let Response::LoginResponse(token, user) = result else {
+        return Err(NativeError::UnexpectedResponse)?;
+    };
+    let mut state = state_mutex.lock().await;
+    state.token = Some(token);
+    let UserResponse {
+        username,
+        email,
+        nickname,
+        first_name,
+        last_name,
+        roles,
+        ..
+    } = user;
+    let user_details = UserDetails {
+        username,
+        email,
+        nickname,
+        first_name,
+        last_name,
+        roles,
+    };
+    state.user_details = Some(user_details.clone());
+    Ok(user_details)
 }
 
 #[tauri::command]
@@ -123,7 +133,6 @@ async fn logout(state_mutex: State<'_, Mutex<UserState>>) -> Result<(), Error> {
     server_state.token = None;
     Ok(())
 }
-
 
 #[tauri::command]
 async fn add_server(url: &str, state_mutex: State<'_, Mutex<ServerState>>) -> Result<String, ()> {
@@ -146,10 +155,15 @@ async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> Resul
 async fn main() {
     let client: Client = Client::new();
     tauri::Builder::default()
-        .manage(Mutex::new(client))
+        .manage(client)
         .manage(Mutex::new(UserState::default()))
         .manage(Mutex::new(ServerState::default()))
-        .invoke_handler(tauri::generate_handler![login, logout, add_server, get_current_server])
+        .invoke_handler(tauri::generate_handler![
+            login,
+            logout,
+            add_server,
+            get_current_server
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
