@@ -54,4 +54,3 @@ pub struct UserDetails {
     pub last_name: String,
     pub roles: String,
 }
-

@@ -1,11 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use log::error;
+use std::ops::Deref;
+
 use reqwest::Client;
 use serde::Serialize;
 use tauri::State;
 use tokio::sync::Mutex;
+use url::Url;
 
 use api::call_event::{ApiEvent, Response};
 use api::handle_request;
@@ -32,6 +34,8 @@ enum Error {
     Standard(#[from] core::fmt::Error),
     #[error("the mutex was poisoned")]
     PoisonError(String),
+    #[error("{_0}")]
+    Url(#[from] url::ParseError),
 }
 
 impl serde::Serialize for Error {
@@ -68,14 +72,14 @@ impl Default for UserState {
 #[derive(Serialize, Clone)]
 pub(crate) struct ServerState {
     #[serde(skip_serializing)]
-    current: Option<String>,
-    urls: Vec<String>,
+    current: Option<Url>,
+    urls: Vec<Url>,
 }
 
 impl Default for ServerState {
     fn default() -> Self {
         Self {
-            current: Some("http://localhost:8065".to_owned()), // TODO add dev env
+            current: Url::parse("http://localhost:8065").ok(), // TODO add dev env
             urls: vec![],
         }
     }
@@ -137,22 +141,30 @@ async fn logout(state_mutex: State<'_, Mutex<UserState>>) -> Result<(), Error> {
 #[tauri::command]
 async fn add_server(url: &str, state_mutex: State<'_, Mutex<ServerState>>) -> Result<String, ()> {
     let mut state = state_mutex.lock().await;
-    let current: String = url.to_owned();
-    state.current = Some(current.to_owned());
-    state.urls.push(current.to_owned());
-    Ok(current)
+    let current = match Url::parse(url) {
+        Ok(url) => url,
+        Err(e) => {
+            tracing::warn!("Invalid url {url:?}: {e}");
+            return Err(());
+        }
+    };
+    state.current = Some(current.clone());
+    state.urls.push(current.clone());
+    Ok(current.into())
 }
 
 #[tauri::command]
 async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> Result<String, ()> {
     let state = state_mutex.lock().await;
     let current = state.current.as_ref().unwrap().to_owned();
-    Ok(current)
+    Ok(current.into())
 }
 
 #[tokio::main]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 async fn main() {
+    tracing_subscriber::fmt::init();
+
     let client: Client = Client::new();
     tauri::Builder::default()
         .manage(client)
