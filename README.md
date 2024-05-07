@@ -16,6 +16,10 @@ Before you begin, make sure to install all required Rust language and system dep
 
 [Tauri Prerequisites Guide](https://tauri.app/v1/guides/getting-started/prerequisites/)
 
+```
+pacman -S lz4
+```
+
 ## How to use
 
 This project is already setup to start working on it. You only need to clone it.
