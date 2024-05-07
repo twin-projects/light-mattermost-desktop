@@ -1,13 +1,10 @@
-use crate::{Error, NativeError};
 use reqwest::header::HeaderMap;
-use reqwest::Method;
-use reqwest::{Client, StatusCode};
+use reqwest::{Client, Method};
 use serde::Serialize;
 use url::Url;
 
 use crate::api::call_event::{ApiEvent, LoginRequest, Response, Team, UserResponse};
-
-static API_VERSION: &str = "/api/v4/";
+use crate::NativeError;
 
 macro_rules! join_url {
     ($url: expr, $($piece: expr),*) => {
@@ -21,12 +18,14 @@ pub async fn handle_request(
     event: &ApiEvent,
     token: Option<&String>,
 ) -> Result<Response, crate::Error> {
+    let server_url = join_url!(server_url, "api", "v4");
+
     match &event {
-        ApiEvent::LoginEvent(login, password) => {
+        ApiEvent::LoginEvent(login_id, password) => {
             login(
                 client,
                 join_url!(server_url, "users", "login"),
-                &login,
+                &login_id,
                 &password,
             )
             .await
@@ -61,7 +60,7 @@ async fn login(
     uri: Url,
     login: &String,
     password: &String,
-) -> Result<Response, Error> {
+) -> Result<Response, crate::Error> {
     let login_request = LoginRequest {
         login_id: login.to_string(),
         password: password.to_string(),
@@ -88,9 +87,11 @@ async fn login(
     }
 }
 
-fn get_token(headers: &HeaderMap) -> &str {
-    let token = headers.get("token").unwrap();
-    token.to_str().unwrap()
+fn get_token<'h>(headers: &'h HeaderMap) -> &'h str {
+    headers
+        .get("token")
+        .and_then(|header| header.to_str().ok())
+        .unwrap_or_default()
 }
 
 async fn my_teams(

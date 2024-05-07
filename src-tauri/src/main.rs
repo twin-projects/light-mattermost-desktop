@@ -1,14 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use api::call_event::{ApiEvent, Response};
+use api::handle_request;
 use reqwest::Client;
 use serde::Serialize;
 use tauri::State;
 use tokio::sync::Mutex;
 use url::Url;
-
-use api::call_event::{ApiEvent, Response};
-use api::handle_request;
 
 use crate::api::call_event::{Team, UserDetails};
 
@@ -111,15 +110,13 @@ async fn login(
         None,
     )
     .await?;
-    match &response {
-        Response::LoginResponse(token, _id, username) => {
-            user_state.token = Some(token.to_owned());
-            Ok(UserDetails {
-                username: username.to_owned(),
-            })
-        }
-        Response::MyTeams(_) => Err(Error::PoisonError("Incorrect type".to_string())),
-    }
+    let Response::LoginResponse(token, _id, username) = result else {
+        return Err(NativeError::UnexpectedResponse)?;
+    };
+    user_state.token = Some(token.to_owned());
+    Ok(UserDetails {
+        username: username.to_owned(),
+    })
 }
 
 #[tauri::command]
@@ -134,15 +131,11 @@ async fn my_teams(
     let current_url = server_state.current.as_ref().unwrap();
     let result =
         handle_request(&http_client, current_url, &ApiEvent::MyTeams, token_option).await?;
-    match &response {
-        Response::LoginResponse(token, id, username) => {
-            Err(Error::PoisonError("Incorrect type".to_string()))
-        }
-        Response::MyTeams(teams) => {
-            user_state.teams = Some(teams.to_owned());
-            Ok(teams.to_owned())
-        }
-    }
+    let Response::MyTeams(teams) = result else {
+        return Err(NativeError::UnexpectedResponse)?;
+    };
+    user_state.teams = Some(teams.to_owned());
+    Ok(teams.to_owned())
 }
 
 #[tauri::command]
@@ -169,10 +162,15 @@ async fn add_server(url: &str, state_mutex: State<'_, Mutex<ServerState>>) -> Re
 }
 
 #[tauri::command]
-async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> Result<String, ()> {
+async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> Result<String, Error> {
     let state = state_mutex.lock().await;
-    let current = state.current.as_ref().unwrap().to_owned();
-    Ok(current.into())
+    let current = state
+        .current
+        .as_ref()
+        .ok_or_else(|| NativeError::ServerNotSelected)?
+        .to_owned()
+        .to_string();
+    Ok(current)
 }
 
 #[tokio::main]
