@@ -1,0 +1,136 @@
+name: build
+
+on: [push]
+
+env:
+  LIBSODIUM: libsodium-1.0.18
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    env:
+      SODIUM_LIB_DIR: /usr/local/lib
+      LZ4_LIB_DIR: /usr/local/lib
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cache libsodium
+      id: cache-libsodium
+      uses: actions/cache@v2
+      with:
+        path: libsodium-1.0.18
+        key: ${{ runner.os }}-libsodium-1.0.18
+
+    - name: Cache lz4
+      id: cache-lz4
+      uses: actions/cache@v2
+      with:
+        path: lz4-1.9.3
+        key: ${{ runner.os }}-lz4-1.9.3
+
+    - name: Cache Cargo
+      id: cache-cargo
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Build libsodium
+      if: steps.cache-libsodium.outputs.cache-hit != 'true'
+      run: |
+        wget -nv https://download.libsodium.org/libsodium/releases/$LIBSODIUM.tar.gz
+        tar -xzf $LIBSODIUM.tar.gz
+        cd $LIBSODIUM && ./configure --prefix=/usr && make
+
+    - name: Install libsodium
+      run: cd $LIBSODIUM && sudo make install
+
+    - name: Build lz4
+      if: steps.cache-lz4.outputs.cache-hit != 'true'
+      run: |
+        wget -nv https://github.com/lz4/lz4/archive/refs/tags/v1.9.3.tar.gz
+        tar -xzf v1.9.3.tar.gz
+        cd lz4-1.9.3 && make lib-release
+
+    - name: Install lz4
+      run: cd lz4-1.9.3 && sudo make install
+
+    - name: Build ZboxFS
+      run: cargo build -q
+
+    - name: Run ZboxFS tests
+      run: cargo test
+
+    - name: Run ZboxFS file storage tests
+      run: cargo test --features storage-file
+
+  build-win:
+    runs-on: windows-latest
+    env:
+      LIBLZ4: lz4-1.9.3
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Cache libsodium
+      id: cache-libsodium
+      uses: actions/cache@v2
+      with:
+        path: libsodium-1.0.18
+        key: ${{ runner.os }}-libsodium-1.0.18
+
+    - name: Cache lz4
+      id: cache-lz4
+      uses: actions/cache@v2
+      with:
+        path: lz4-1.9.3
+        key: ${{ runner.os }}-lz4-1.9.3
+
+    - name: Cache Cargo
+      id: cache-cargo
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Download libsodium
+      if: steps.cache-libsodium.outputs.cache-hit != 'true'
+      run: |
+        Invoke-WebRequest https://download.libsodium.org/libsodium/releases/${env:LIBSODIUM}-msvc.zip -OutFile "${env:LIBSODIUM}-msvc.zip"
+        Expand-Archive "${env:LIBSODIUM}-msvc.zip" -DestinationPath ${env:LIBSODIUM}
+
+    - name: Download and build lz4
+      if: steps.cache-lz4.outputs.cache-hit != 'true'
+      run: |
+        Invoke-WebRequest https://github.com/lz4/lz4/archive/refs/tags/v1.9.3.zip -OutFile "${env:LIBLZ4}.zip"
+        Expand-Archive "${env:LIBLZ4}.zip" -DestinationPath ${env:LIBLZ4}
+        cd ${env:LIBLZ4}\${env:LIBLZ4}\lib
+        cl /c *.c
+        lib /out:liblz4.lib *.obj
+
+    - name: Set env variables
+      run: |
+        echo "SODIUM_LIB_DIR=.\${env:LIBSODIUM}\libsodium\x64\Release\v142\static" >> $env:GITHUB_ENV
+        echo "SODIUM_STATIC=1" >> $env:GITHUB_ENV
+        echo "LZ4_LIB_DIR=.\${env:LIBLZ4}\${env:LIBLZ4}\lib" >> $env:GITHUB_ENV
+
+    - name: Build ZboxFS
+      run: cargo build -q
+
+    - name: Run ZboxFS tests
+      run: cargo test
+
+    - name: Run ZboxFS file storage tests
+      run: cargo test --features storage-file
