@@ -2,37 +2,26 @@
 	import { invoke } from '@tauri-apps/api/tauri';
 	import type { UserModel } from '../types/login.model';
 
+	export let user: UserModel | null;
+
 	let login = '';
 	let password = '';
 
-	let firstName = '';
-	let lastName = '';
-	let username = '';
-	let email = '';
-	let nickname = '';
-
 	const authenticate = async () => {
 		const response: UserModel = await invoke('login', { login, password });
-		firstName = response.first_name;
-		lastName = response.last_name;
-		username = response.username;
-		email = response.email;
-		nickname = response.nickname;
+		console.log('res auth', response);
+		user = response;
 	};
 
 	const logout = async () => {
 		await invoke('logout');
-		firstName = '';
-		lastName = '';
-		username = '';
-		email = '';
-		nickname = '';
+		user = null;
 	};
 </script>
 
 <div class="card p-4 flex gap-4 flex-col">
 	<div class="w-full max-w-xs">
-		{#if !username && !firstName && !lastName && !email && !nickname}
+		{#if !user?.username && !user?.first_name && !user?.last_name && !user?.email && !user?.nickname}
 			<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
 				<div class="mb-4">
 					<label class="block text-gray-700 text-sm font-bold mb-2" for="username">
@@ -70,20 +59,20 @@
 			</button>
 		{/if}
 	</div>
-	{#if firstName}
-		<p class="card-footer">firstName {firstName}</p>
+	{#if user?.first_name}
+		<p class="card-footer">first name {user?.first_name}</p>
 	{/if}
-	{#if lastName}
-		<p class="card-footer">lastName {lastName}</p>
+	{#if user?.last_name}
+		<p class="card-footer">lastName {user?.last_name}</p>
 	{/if}
-	{#if username}
-		<p class="card-footer">username {username}</p>
+	{#if user?.username}
+		<p class="card-footer">username {user?.username}</p>
 	{/if}
-	{#if email}
-		<p class="card-footer">email {email}</p>
+	{#if user?.email}
+		<p class="card-footer">email {user?.email}</p>
 	{/if}
-	{#if nickname}
-		<p class="card-footer">nickname {nickname}</p>
+	{#if user?.nickname}
+		<p class="card-footer">nickname {user?.nickname}</p>
 	{/if}
 
 	<p class="text-center text-gray-500 text-xs">

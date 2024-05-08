@@ -2,14 +2,18 @@ use serde::{Deserialize, Serialize};
 
 pub enum ApiEvent {
     LoginEvent(String, String),
+    MyTeams,
 }
 
 pub enum Response {
     LoginResponse(
-        String,       // token
-        UserResponse, // user
+        String, // token
+        String, // user_id
+        String, // user name
     ),
-    _PlaceholderForPattern_,
+    MyTeams(
+        Vec<Team>, // teams
+    ),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -48,9 +52,14 @@ pub struct UserResponse {
 #[derive(Serialize, Clone)]
 pub struct UserDetails {
     pub username: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Team {
+    pub id: String,
+    pub display_name: String,
+    pub name: String,
+    pub description: String,
     pub email: String,
-    pub nickname: String,
-    pub first_name: String,
-    pub last_name: String,
-    pub roles: String,
+    pub company_name: String,
 }
