@@ -8,7 +8,7 @@ use crate::models::*;
 use crate::errors::StorageError;
 
 pub struct Inner {
-    app_config_dir: PathBuf,
+    _app_config_dir: PathBuf,
     vault: Repo,
 }
 
@@ -77,7 +77,7 @@ impl Storage {
         std::fs::write(&app_config_dir.join("secure").join(".repo_lock"), &id).ok();
 
         Self(Arc::new(Mutex::new(Inner {
-            app_config_dir,
+            _app_config_dir: app_config_dir,
             vault,
         })))
     }

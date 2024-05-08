@@ -65,10 +65,6 @@ impl Default for ServerState {
     }
 }
 
-struct FeValue<T> {
-    payload: T,
-}
-
 #[tauri::command]
 async fn login(
     login: String,
