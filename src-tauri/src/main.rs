@@ -10,6 +10,7 @@ use url::Url;
 use crate::api::call_event::*;
 use crate::api::handle_request;
 use crate::errors::*;
+use crate::models::*;
 
 mod api;
 pub mod errors;
@@ -71,8 +72,9 @@ struct FeValue<T> {
 
 #[tauri::command]
 async fn login(
-    login: String,
-    password: String,
+    login: Login,
+    password: Pass,
+    instance_url: InstanceUrl,
     user_state_mutex: State<'_, Mutex<UserState>>,
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
@@ -83,7 +85,7 @@ async fn login(
     let result = handle_request(
         &http_client,
         current_url,
-        &ApiEvent::LoginEvent(login, password),
+        &ApiEvent::LoginEvent(login, password, instance_url),
         None,
     )
     .await?;

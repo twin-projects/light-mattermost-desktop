@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+use crate::models::*;
+
 pub enum ApiEvent {
-    LoginEvent(String, String),
+    LoginEvent(Login, Pass, InstanceUrl),
     MyTeams,
 }
 

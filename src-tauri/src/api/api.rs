@@ -21,10 +21,10 @@ pub async fn handle_request(
     let server_url = join_url!(server_url, "api", "v4");
 
     match event {
-        ApiEvent::LoginEvent(login_id, password) => {
+        ApiEvent::LoginEvent(login_id, password, instance_url) => {
             login(
                 client,
-                join_url!(server_url, "users", "login"),
+                join_url!(&instance_url, "users", "login"),
                 &login_id,
                 &password,
             )

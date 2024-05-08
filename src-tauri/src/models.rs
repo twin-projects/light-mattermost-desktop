@@ -15,6 +15,9 @@ pub struct Login(String);
 )]
 pub struct Pass(String);
 
+#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct InstanceUrl(Url);
+
 /// Non-empty, no-white character access token used to communicate with
 /// MatterMost server
 #[nutype(

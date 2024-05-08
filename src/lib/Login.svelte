@@ -6,9 +6,10 @@
 
 	let login = '';
 	let password = '';
+    let instance = '';
 
 	const authenticate = async () => {
-		const response: UserModel = await invoke('login', { login, password });
+		const response: UserModel = await invoke('login', { login, password, instance });
 		console.log('res auth', response);
 		user = response;
 	};
@@ -25,12 +26,23 @@
 			<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
 				<div class="mb-4">
 					<label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+						Instance
+					</label>
+					<input
+						bind:value={instance}
+						class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+						id="instance" placeholder="https://mattermost.example.com" type="url"
+                    />
+				</div>
+				<div class="mb-4">
+					<label class="block text-gray-700 text-sm font-bold mb-2" for="username">
 						Username
 					</label>
 					<input
 						bind:value={login}
 						class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-						id="username" placeholder="Username" type="text">
+						id="username" placeholder="Username" type="text"
+                    />
 				</div>
 				<div class="mb-6">
 					<label class="block text-gray-700 text-sm font-bold mb-2" for="password">
@@ -39,7 +51,8 @@
 					<input
 						bind:value={password}
 						class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-						id="password" placeholder="******************" type="password">
+						id="password" placeholder="******************" type="password"
+                    />
 					<p class="text-red-500 text-xs italic">Please choose a password.</p>
 				</div>
 				<div class="flex items-center justify-between">
