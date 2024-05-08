@@ -3,8 +3,8 @@ use reqwest::{Client, Method};
 use serde::Serialize;
 use url::Url;
 
-use crate::api::call_event::{ApiEvent, LoginRequest, Response, Team, UserResponse};
-use crate::NativeError;
+use crate::api::call_event::*;
+use crate::errors::*;
 
 macro_rules! join_url {
     ($url: expr, $($piece: expr),*) => {
@@ -17,10 +17,10 @@ pub async fn handle_request(
     server_url: &Url,
     event: &ApiEvent,
     token: Option<&String>,
-) -> Result<Response, crate::Error> {
+) -> Result<Response, Error> {
     let server_url = join_url!(server_url, "api", "v4");
 
-    match &event {
+    match event {
         ApiEvent::LoginEvent(login_id, password) => {
             login(
                 client,
@@ -60,7 +60,7 @@ async fn login(
     uri: Url,
     login: &String,
     password: &String,
-) -> Result<Response, crate::Error> {
+) -> Result<Response, Error> {
     let login_request = LoginRequest {
         login_id: login.to_string(),
         password: password.to_string(),
@@ -94,11 +94,7 @@ fn get_token<'h>(headers: &'h HeaderMap) -> &'h str {
         .unwrap_or_default()
 }
 
-async fn my_teams(
-    client: &Client,
-    uri: Url,
-    token: Option<&String>,
-) -> Result<Response, crate::Error> {
+async fn my_teams(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
     let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
     if response.status().is_success() {
         let teams: Vec<Team> = response.json::<Vec<Team>>().await.unwrap();

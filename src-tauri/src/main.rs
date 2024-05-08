@@ -1,43 +1,20 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use api::call_event::{ApiEvent, Response};
-use api::handle_request;
 use reqwest::Client;
 use serde::Serialize;
 use tauri::State;
 use tokio::sync::Mutex;
 use url::Url;
 
-use crate::api::call_event::{Team, UserDetails};
+use crate::api::call_event::*;
+use crate::api::handle_request;
+use crate::errors::*;
 
 mod api;
-
-#[derive(Debug, thiserror::Error)]
-enum NativeError {
-    #[error("No mattermost server is selected")]
-    ServerNotSelected,
-    #[error("Unexpected response from mattermost server")]
-    UnexpectedResponse,
-    #[error("Unable to fetch teams from mattermost server")]
-    FetchTeams,
-    #[error("Unable to perform login, mattermost server return an error")]
-    PerformLogin,
-}
-
-#[derive(Debug, thiserror::Error)]
-enum Error {
-    #[error(transparent)]
-    Native(#[from] NativeError),
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-    #[error(transparent)]
-    Standard(#[from] core::fmt::Error),
-    #[error("the mutex was poisoned")]
-    PoisonError(String),
-    #[error("{_0}")]
-    Url(#[from] url::ParseError),
-}
+pub mod errors;
+pub mod models;
+pub mod storage;
 
 impl serde::Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -182,6 +159,7 @@ async fn main() {
         .manage(client)
         .manage(Mutex::new(UserState::default()))
         .manage(Mutex::new(ServerState::default()))
+        .manage(storage::Storage::new())
         .invoke_handler(tauri::generate_handler![
             login,
             logout,
