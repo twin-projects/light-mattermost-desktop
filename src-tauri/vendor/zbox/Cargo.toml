@@ -1,0 +1,80 @@
+[package]
+name = "zbox"
+version = "0.9.2"
+authors = ["Bo Lu"]
+description = "ZboxFS is a zero-details, privacy-focused in-app file system."
+documentation = "https://docs.rs/zbox"
+homepage = "https://github.com/zboxfs/zbox"
+repository = "https://github.com/zboxfs/zbox"
+readme = "README.md"
+keywords = ["filesystem", "crypto", "security", "privacy", "storage"]
+categories = ["filesystem", "cryptography"]
+license = "Apache-2.0"
+build = "build.rs"
+edition = "2018"
+
+# This feature will be enabled during the docs.rs build
+[package.metadata.docs.rs]
+features = ["docs-rs"]
+
+[badges]
+travis-ci = { repository = "zboxfs/zbox" }
+
+[lib]
+name = "zbox"
+crate-type = ["rlib", "cdylib", "staticlib"]
+
+[profile.release]
+lto = true
+opt-level = 's'
+
+[features]
+test-perf = ["storage-file"]
+storage-file = []
+storage-faulty = ["storage-file"]
+storage-zbox = []
+storage-zbox-faulty = ["storage-zbox"]
+storage-zbox-native = ["storage-zbox", "futures", "bytes"]
+storage-zbox-android = ["storage-zbox"]
+libsodium-bundled = []
+docs-rs = []
+
+[dependencies]
+cfg-if = "1"
+env_logger = "0"
+log = "0"
+rmp-serde = "0"
+serde = { version = "1", features = ["derive"] }
+lazy_static = "1"
+futures = { version = "0", features = ["executor"], optional = true }
+bytes = { version = "1", optional = true }
+
+[dependencies.linked-hash-map]
+version = "0"
+features = ["serde_impl"]
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { version = "0", features = ["serde-serialize"] }
+js-sys = { version = "0" }
+web-sys = { version = "0", features = ["Crypto", "WorkerGlobalScope", "XmlHttpRequest", "XmlHttpRequestResponseType", "Blob"] }
+
+[dev-dependencies]
+bytes = "1"
+tempdir = "0"
+rand = "0"
+rand_xorshift = "0"
+tokio = { version = "1", features = ["rt", "net", "macros", "rt-multi-thread"] }
+
+[build-dependencies]
+pkg-config = "0"
+cc = "1"
+
+[target.'cfg(target_os = "windows")'.build-dependencies]
+libflate = "1"
+reqwest = { version = "0", default-features = false, features = ["rustls-tls"] }
+tar = "0"
+tempfile = "3"
+zip = "0"
