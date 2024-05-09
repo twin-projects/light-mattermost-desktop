@@ -1,16 +1,10 @@
-use reqwest::header::HeaderMap;
 use reqwest::{Client, Method};
+use reqwest::header::HeaderMap;
 use serde::Serialize;
 use url::Url;
 
 use crate::api::call_event::*;
 use crate::errors::*;
-
-macro_rules! join_url {
-    ($url: expr, $($piece: expr),*) => {
-       $url$(.join($piece).expect("url must be valid"))*
-    };
-}
 
 pub async fn handle_request(
     client: &Client,
@@ -18,20 +12,19 @@ pub async fn handle_request(
     event: &ApiEvent,
     token: Option<&String>,
 ) -> Result<Response, Error> {
-    let server_url = join_url!(server_url, "api", "v4");
-
+    let server_url = server_url.join("api/v4/").unwrap();
     match event {
         ApiEvent::LoginEvent(login_id, password) => {
             login(
                 client,
-                join_url!(server_url, "users", "login"),
+                server_url.join("users/login").unwrap(),
                 &login_id,
                 &password,
             )
-            .await
+                .await
         }
         ApiEvent::MyTeams => {
-            my_teams(client, join_url!(server_url, "users", "me", "teams"), token).await
+            my_teams(client, server_url.join("users/me/teams").unwrap(), token).await
         }
     }
 }
@@ -49,7 +42,7 @@ async fn handle<T: Serialize>(
         _ => builder,
     };
     builder = match token {
-        Some(bearer_token) => builder.bearer_auth(format!("Bearer {bearer_token}")),
+        Some(bearer_token) => builder.bearer_auth(bearer_token),
         _ => builder,
     };
     builder.send().await.unwrap()
@@ -61,6 +54,7 @@ async fn login(
     login: &String,
     password: &String,
 ) -> Result<Response, Error> {
+    tracing::info!("Login user: {} to {}", login, uri);
     let login_request = LoginRequest {
         login_id: login.to_string(),
         password: password.to_string(),
@@ -74,6 +68,7 @@ async fn login(
     match user_response {
         Ok(user) => {
             let UserResponse { id, username, .. } = user;
+            tracing::info!("Login successful");
             Ok(Response::LoginResponse(
                 token,
                 id.to_owned(),
@@ -87,7 +82,7 @@ async fn login(
     }
 }
 
-fn get_token<'h>(headers: &'h HeaderMap) -> &'h str {
+fn get_token(headers: &HeaderMap) -> &str {
     headers
         .get("token")
         .and_then(|header| header.to_str().ok())
@@ -95,11 +90,14 @@ fn get_token<'h>(headers: &'h HeaderMap) -> &'h str {
 }
 
 async fn my_teams(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
+    tracing::info!("Get my teams: {} token: {}", uri, token.unwrap());
     let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
     if response.status().is_success() {
         let teams: Vec<Team> = response.json::<Vec<Team>>().await.unwrap();
+        tracing::trace!("Received my teams: {:?}", teams);
         Ok(Response::MyTeams(teams))
     } else {
+        tracing::error!("Failed to get my teams!");
         Err(NativeError::FetchTeams)?
     }
 }

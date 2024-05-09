@@ -13,33 +13,34 @@
 		invoke('get_current_server')
 			.then(it => it as string)
 			.then((current) => url = current);
-
 	};
 	getCurrentServer();
 
-	$: if (user) invoke('my_teams')
-		.then(teams => teams as Team[])
-		.then(it => {
-			console.warn(it)
-			return teams = it;
-		});
+	const get_my_teams = () => {
+		invoke('my_teams')
+			.then(teams => teams as Team[])
+			.then(it => {
+				console.warn(it);
+				return teams = it;
+			});
+	};
+
+	$: if (user) get_my_teams();
 </script>
 
 <div class="container h-full mx-auto flex justify-center items-center">
 	<div class="space-y-5">
 		<h1 class="h1">Mattermost</h1>
 		<section class="space-y-4">
+					<button
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						type="button" on:click={get_my_teams}>teams</button>
 			{#if url === ''}
 				<AddServer currentUrl={getCurrentServer} />
 			{:else}
 				<Login user={user} />
 			{/if}
 			{JSON.stringify(teams)}
-			{#if user}
-				{#each teams as team}
-					<li>{team.name}</li>
-				{/each}
-			{/if}
 		</section>
 	</div>
 </div>

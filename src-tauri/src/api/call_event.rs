@@ -1,3 +1,4 @@
+use std::fmt;
 use serde::{Deserialize, Serialize};
 
 pub enum ApiEvent {
@@ -5,6 +6,7 @@ pub enum ApiEvent {
     MyTeams,
 }
 
+#[derive()]
 pub enum Response {
     LoginResponse(
         String, // token
@@ -14,6 +16,13 @@ pub enum Response {
     MyTeams(
         Vec<Team>, // teams
     ),
+}
+
+impl fmt::Display for Response {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Customize so only `x` and `y` are denoted.
+        write!(f, "{}", self)
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -54,7 +63,7 @@ pub struct UserDetails {
     pub username: String,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Team {
     pub id: String,
     pub display_name: String,
