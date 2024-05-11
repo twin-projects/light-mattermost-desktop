@@ -2,7 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use reqwest::Client;
-use serde::Serialize;
 use tokio::sync::Mutex;
 
 use crate::commands::{add_server, get_current_server, login, logout, my_teams};
