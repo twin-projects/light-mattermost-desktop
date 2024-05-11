@@ -20,18 +20,28 @@ impl Default for UserState {
     }
 }
 
+#[derive(Serialize, Clone, Debug)]
+pub(crate) struct Server {
+    pub(crate) name: String,
+    pub(crate) url: Url
+}
+
 #[derive(Serialize, Clone)]
 pub(crate) struct ServerState {
     #[serde(skip_serializing)]
-    pub(crate) current: Option<Url>,
-    pub(crate) urls: Vec<Url>,
+    pub(crate) current: Option<Server>,
+    pub(crate) servers: Vec<Server>,
 }
 
 impl Default for ServerState {
     fn default() -> Self {
+        let current = Some(Server {
+            name: "localhost".to_owned(),
+            url: Url::parse("http://localhost:8065").ok().unwrap()
+        });
         Self {
-            current: Url::parse("http://localhost:8065").ok(), // TODO add dev env
-            urls: vec![],
+            current, // TODO add dev env
+            servers: vec![],
         }
     }
 }

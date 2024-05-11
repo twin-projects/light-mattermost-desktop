@@ -90,7 +90,7 @@ fn get_token(headers: &HeaderMap) -> &str {
 }
 
 async fn my_teams(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
-    tracing::info!("Get my teams: {} token: {}", uri, token.unwrap());
+    tracing::info!("Get my teams: {}", uri);
     let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
     if response.status().is_success() {
         let teams: Vec<Team> = response.json::<Vec<Team>>().await.unwrap();

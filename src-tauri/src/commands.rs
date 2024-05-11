@@ -5,7 +5,7 @@ use url::Url;
 use crate::api::call_event::{ApiEvent, Response, Team, UserDetails};
 use crate::api::handle_request;
 use crate::errors::{Error, NativeError};
-use crate::states::{ServerState, UserState};
+use crate::states::{Server, ServerState, UserState};
 
 #[tauri::command]
 pub async fn login(
@@ -21,7 +21,7 @@ pub async fn login(
     let current_url = server_state.current.as_ref().unwrap();
     let result = handle_request(
         &http_client,
-        current_url,
+        &current_url.url,
         &ApiEvent::LoginEvent(login, password),
         None,
     )
@@ -47,7 +47,7 @@ pub async fn my_teams(
     let server_state = server_state_mutex.lock().await;
     let current_url = server_state.current.as_ref().unwrap();
     let result =
-        handle_request(&http_client, current_url, &ApiEvent::MyTeams, token_option).await?;
+        handle_request(&http_client, &current_url.url, &ApiEvent::MyTeams, token_option).await?;
     let Response::MyTeams(teams) = result else {
         return Err(NativeError::UnexpectedResponse)?;
     };
@@ -64,28 +64,28 @@ pub async fn logout(state_mutex: State<'_, Mutex<UserState>>) -> Result<(), Erro
 }
 
 #[tauri::command]
-pub async fn add_server(url: &str, state_mutex: State<'_, Mutex<ServerState>>) -> Result<String, ()> {
+pub async fn add_server(name: &str, url: &str, state_mutex: State<'_, Mutex<ServerState>>) -> Result<Server, ()> {
     let mut state = state_mutex.lock().await;
     let current = match Url::parse(url) {
-        Ok(url) => url,
+        Ok(url) => Server { name: name.to_owned(), url },
         Err(e) => {
             tracing::warn!("Invalid url {url:?}: {e}");
             return Err(());
         }
     };
     state.current = Some(current.clone());
-    state.urls.push(current.clone());
+    state.servers.push(current.clone());
     Ok(current.into())
 }
 
 #[tauri::command]
-pub async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> Result<String, Error> {
+pub async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> Result<Server, Error> {
     let state = state_mutex.lock().await;
     let current = state
         .current
         .as_ref()
         .ok_or_else(|| NativeError::ServerNotSelected)?
-        .to_owned()
-        .to_string();
+        .to_owned();
+    tracing::debug!("Current selected server {:?}", current);
     Ok(current)
 }

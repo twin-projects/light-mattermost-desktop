@@ -1,5 +1,4 @@
-export type  Team = {
-	id: string,
+export type  TeamModel = {
 	display_name: string,
 	name: string,
 	description: string,

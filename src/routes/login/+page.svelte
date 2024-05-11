@@ -1,34 +1,37 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/tauri';
-	import type { UserModel } from '../types/login.model';
+	import { goto } from '$app/navigation';
+	import { login } from '$lib/controllers';
+	import { page } from '$app/stores';
+	import { state } from '$lib/store';
 
-	export let user: UserModel | null;
+	let loginId = 'admin';
+	let password = 'admin123!';
 
-	let login = '';
-	let password = '';
-
-	const authenticate = async () => {
-		const response: UserModel = await invoke('login', { login, password });
-		console.log('res auth', response);
-		user = response;
+	const authenticate = () => {
+		login(loginId, password).then((user) => {
+			state.update((value) => ({ ...value, user: user }));
+			goto('/');
+		});
 	};
 
 	const logout = async () => {
 		await invoke('logout');
-		user = null;
+		$page.data.user = null;
 	};
 </script>
 
 <div class="card p-4 flex gap-4 flex-col">
+	<h1>Login</h1>
 	<div class="w-full max-w-xs">
-		{#if !user?.username && !user?.first_name && !user?.last_name && !user?.email && !user?.nickname}
+		{#if !$page.data.user}
 			<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
 				<div class="mb-4">
 					<label class="block text-gray-700 text-sm font-bold mb-2" for="username">
 						Username
 					</label>
 					<input
-						bind:value={login}
+						bind:value={loginId}
 						class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 						id="username" placeholder="Username" type="text">
 				</div>
@@ -57,25 +60,7 @@
 				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 			>Logout
 			</button>
+			<!--			<UserDetails user={user} />-->
 		{/if}
 	</div>
-	{#if user?.first_name}
-		<p class="card-footer">first name {user?.first_name}</p>
-	{/if}
-	{#if user?.last_name}
-		<p class="card-footer">lastName {user?.last_name}</p>
-	{/if}
-	{#if user?.username}
-		<p class="card-footer">username {user?.username}</p>
-	{/if}
-	{#if user?.email}
-		<p class="card-footer">email {user?.email}</p>
-	{/if}
-	{#if user?.nickname}
-		<p class="card-footer">nickname {user?.nickname}</p>
-	{/if}
-
-	<p class="text-center text-gray-500 text-xs">
-		&copy;2020 Acme Corp. All rights reserved.
-	</p>
 </div>
