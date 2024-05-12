@@ -4,7 +4,7 @@
 use reqwest::Client;
 use tokio::sync::Mutex;
 
-use crate::commands::{add_server, get_current_server, login, logout, my_teams};
+use crate::commands::{add_server, get_all_servers, get_current_server, login, logout, my_teams};
 use crate::errors::*;
 use crate::states::{ServerState, UserState};
 
@@ -44,6 +44,7 @@ async fn main() {
             logout,
             add_server,
             get_current_server,
+            get_all_servers,
             my_teams
         ])
         .run(tauri::generate_context!())

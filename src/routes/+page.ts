@@ -1,11 +1,12 @@
-import { defaultState, type PageState, state } from '$lib/store';
-import { get_my_teams } from '$lib/controllers';
+import { defaultState, type PageState, servers, state } from '$lib/store';
+import { get_all_servers, get_my_teams } from '$lib/controllers';
 
 export const prerender = 'auto';
 export const ssr = false;
 
 export const load = async () => {
 	let pageState: PageState = defaultState;
+
 	state.subscribe((value) => {
 		pageState = value;
 	});
@@ -15,5 +16,12 @@ export const load = async () => {
 			pageState.teams = teams ?? [];
 		});
 	}
+	await get_all_servers().then((be_servers) => {
+		if (be_servers) {
+			pageState.servers = be_servers;
+			servers.update(() => be_servers);
+		}
+	});
+
 	return { ...pageState };
 };

@@ -17,6 +17,11 @@ export const get_current_server = async (): Promise<ServerModel | null> =>
 		})
 		.catch(handle_error);
 
+export const get_all_servers = async (): Promise<ServerModel[] | null> =>
+	invoke('get_all_servers')
+		.then(servers => servers as ServerModel[])
+		.catch(handle_error);
+
 export const get_my_teams = async () =>
 	invoke('my_teams')
 		.then(myTeams => myTeams as TeamModel[])

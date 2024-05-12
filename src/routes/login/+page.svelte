@@ -1,17 +1,36 @@
 <script lang="ts">
+	import type { UserModel } from '$lib/types/login.model';
 	import { invoke } from '@tauri-apps/api/tauri';
 	import { goto } from '$app/navigation';
 	import { login } from '$lib/controllers';
+	import { getToastStore, initializeStores, Toast } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
 	import { state } from '$lib/store';
+
+	initializeStores();
+
+	const toastStore = getToastStore();
 
 	let loginId = 'admin';
 	let password = 'admin123!';
 
-	const authenticate = () => {
-		login(loginId, password).then((user) => {
+	const toastMessage = async (user: UserModel) => {
+		toastStore.trigger({
+			message: `You are login as ${user?.username}`,
+			autohide: false,
+			timeout: 10000,
+			background: 'variant-filled-success',
+		});
+		await new Promise(resolve => setTimeout(resolve, 1000));
+	};
+
+	const authenticate = async () => {
+		await login(loginId, password).then(async (user) => {
 			state.update((value) => ({ ...value, user: user }));
-			goto('/');
+			if (user) {
+				await toastMessage(user);
+				goto('/').catch(console.error);
+			}
 		});
 	};
 
@@ -22,6 +41,7 @@
 </script>
 
 <div class="card p-4 flex gap-4 flex-col">
+	<Toast />
 	<h1>Login</h1>
 	<div class="w-full max-w-xs">
 		{#if !$page.data.user}
