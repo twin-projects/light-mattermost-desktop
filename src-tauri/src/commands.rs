@@ -2,6 +2,7 @@ use reqwest::Client;
 use tauri::State;
 use tokio::sync::Mutex;
 use url::Url;
+
 use crate::api::call_event::{ApiEvent, Response, Team, UserDetails};
 use crate::api::handle_request;
 use crate::errors::{Error, NativeError};
@@ -88,4 +89,12 @@ pub async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> R
         .to_owned();
     tracing::debug!("Current selected server {:?}", current);
     Ok(current)
+}
+
+#[tauri::command]
+pub async fn get_all_servers(state_mutex: State<'_, Mutex<ServerState>>) -> Result<Vec<Server>, Error> {
+    let state = state_mutex.lock().await;
+    let servers = state.servers.to_owned();
+    tracing::debug!("all servers: {:?}", servers);
+    Ok(servers)
 }

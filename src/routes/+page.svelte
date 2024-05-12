@@ -1,7 +1,10 @@
 <script lang="ts">
 	import type { PageData } from '$lib/store';
 	import { goto } from '$app/navigation';
+	import { initializeStores, Toast } from '@skeletonlabs/skeleton';
 	import UserTeams from '$lib/team/UserTeams.svelte';
+
+	initializeStores();
 
 	export let data: PageData;
 
@@ -9,6 +12,7 @@
 </script>
 
 <div class="container h-full mx-auto flex justify-center items-center">
+	<Toast />
 	<div class="space-y-5">
 		<section class="space-y-4">
 			{#if data.teams.length > 0}

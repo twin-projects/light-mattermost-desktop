@@ -40,8 +40,8 @@ impl Default for ServerState {
             url: Url::parse("http://localhost:8065").ok().unwrap()
         });
         Self {
-            current, // TODO add dev env
-            servers: vec![],
+            current: current.to_owned(), // TODO add dev env
+            servers: vec![current.unwrap()],
         }
     }
 }
