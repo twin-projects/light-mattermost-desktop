@@ -16,7 +16,7 @@ pub async fn login(
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
 ) -> Result<UserDetails, Error> {
-    tracing::info!("{}","User login ".to_string());
+    tracing::info!("{}", "User login ".to_string());
     let mut user_state = user_state_mutex.lock().await;
     let server_state = server_state_mutex.lock().await;
     let current_url = server_state.current.as_ref().unwrap();
@@ -26,7 +26,7 @@ pub async fn login(
         &ApiEvent::LoginEvent(login, password),
         None,
     )
-        .await?;
+    .await?;
     let Response::LoginResponse(token, _id, username) = result else {
         return Err(NativeError::UnexpectedResponse)?;
     };
@@ -47,8 +47,13 @@ pub async fn my_teams(
     let token_option = user_state.token.as_ref();
     let server_state = server_state_mutex.lock().await;
     let current_url = server_state.current.as_ref().unwrap();
-    let result =
-        handle_request(&http_client, &current_url.url, &ApiEvent::MyTeams, token_option).await?;
+    let result = handle_request(
+        &http_client,
+        &current_url.url,
+        &ApiEvent::MyTeams,
+        token_option,
+    )
+    .await?;
     let Response::MyTeams(teams) = result else {
         return Err(NativeError::UnexpectedResponse)?;
     };
@@ -65,10 +70,17 @@ pub async fn logout(state_mutex: State<'_, Mutex<UserState>>) -> Result<(), Erro
 }
 
 #[tauri::command]
-pub async fn add_server(name: &str, url: &str, state_mutex: State<'_, Mutex<ServerState>>) -> Result<Server, ()> {
+pub async fn add_server(
+    name: &str,
+    url: &str,
+    state_mutex: State<'_, Mutex<ServerState>>,
+) -> Result<Vec<Server>, ()> {
     let mut state = state_mutex.lock().await;
     let current = match Url::parse(url) {
-        Ok(url) => Server { name: name.to_owned(), url },
+        Ok(url) => Server {
+            name: name.to_owned(),
+            url,
+        },
         Err(e) => {
             tracing::warn!("Invalid url {url:?}: {e}");
             return Err(());
@@ -76,11 +88,13 @@ pub async fn add_server(name: &str, url: &str, state_mutex: State<'_, Mutex<Serv
     };
     state.current = Some(current.clone());
     state.servers.push(current.clone());
-    Ok(current.into())
+    Ok(state.servers.clone())
 }
 
 #[tauri::command]
-pub async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> Result<Server, Error> {
+pub async fn get_current_server(
+    state_mutex: State<'_, Mutex<ServerState>>,
+) -> Result<Server, Error> {
     let state = state_mutex.lock().await;
     let current = state
         .current
@@ -92,9 +106,12 @@ pub async fn get_current_server(state_mutex: State<'_, Mutex<ServerState>>) -> R
 }
 
 #[tauri::command]
-pub async fn get_all_servers(state_mutex: State<'_, Mutex<ServerState>>) -> Result<Vec<Server>, Error> {
+pub async fn get_all_servers(
+    state_mutex: State<'_, Mutex<ServerState>>,
+) -> Result<Vec<Server>, Error> {
     let state = state_mutex.lock().await;
     let servers = state.servers.to_owned();
     tracing::debug!("all servers: {:?}", servers);
     Ok(servers)
 }
+

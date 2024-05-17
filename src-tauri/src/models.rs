@@ -1,6 +1,15 @@
 use nutype::nutype;
 use url::Url;
 
+#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From,))]
+pub struct ServerUrl(Url);
+
+impl ServerUrl {
+    pub fn parse(url: &str) -> Result<Self, url::ParseError> {
+        Ok(Self::new(Url::parse(url)?))
+    }
+}
+
 #[nutype(
     derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, TryFrom),
     sanitize(trim),
@@ -32,6 +41,6 @@ pub struct Credentials {
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ServerCredentials {
-    pub url: Url,
+    pub url: ServerUrl,
     pub access_token: AccessToken,
 }

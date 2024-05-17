@@ -2,11 +2,16 @@
 	import '../app.postcss';
 	import { AppBar, ListBoxItem } from '@skeletonlabs/skeleton';
 	import { Icon } from 'svelte-icons-pack';
-	import { FaSolidBars, FaSolidCircleUser, FaSolidServer } from 'svelte-icons-pack/fa';
+	import { FaSolidBars, FaSolidCircleUser, FaSolidServer, FaSolidCirclePlus } from 'svelte-icons-pack/fa';
 	import { servers, state } from '$lib/store';
+	import { goto } from '$app/navigation';
 	import Dropdown from '$lib/ui/Dropdown.svelte';
 
 	let serverValue: string = $state.currentServer?.name ?? 'Select';
+
+    const goToAddServer = async () => {
+        goto("/add_server");
+    };
 </script>
 
 <AppBar gridColumns="grid-cols-3" slotDefault="place-self-center" slotTrail="place-content-end">
@@ -24,6 +29,9 @@
 				{/each}
 			</svelte:fragment>
 		</Dropdown>
+        <button on:click={goToAddServer}>
+            <Icon src={FaSolidCirclePlus} />
+        </button>
 	</svelte:fragment>
 	<h1 class="text-4xl">Mattermost</h1>
 	<svelte:fragment slot="trail">
