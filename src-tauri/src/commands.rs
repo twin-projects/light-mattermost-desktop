@@ -75,7 +75,6 @@ pub async fn add_server(
     url: &str,
     state_mutex: State<'_, Mutex<ServerState>>,
 ) -> Result<Vec<Server>, ()> {
-    let mut state = state_mutex.lock().await;
     let current = match Url::parse(url) {
         Ok(url) => Server {
             name: name.to_owned(),
@@ -86,8 +85,31 @@ pub async fn add_server(
             return Err(());
         }
     };
+    let mut state = state_mutex.lock().await;
     state.current = Some(current.clone());
     state.servers.push(current.clone());
+    tracing::info!("{:?}", state.current);
+    tracing::info!("{:?}", state.servers);
+    Ok(state.servers.clone())
+}
+
+#[tauri::command]
+pub async fn set_current_server(
+    server_name: &str,
+    state_mutex: State<'_, Mutex<ServerState>>,
+) -> Result<Vec<Server>, Error> {
+    let mut state = state_mutex.lock().await;
+    let Some(current) = state
+        .servers
+        .iter()
+        .find(|server| server.name == server_name)
+        .cloned()
+    else {
+        return Err(NativeError::UnknownServer)?;
+    };
+    state.current = Some(current.clone());
+    tracing::info!("{:?}", current);
+    tracing::info!("{:?}", state.servers);
     Ok(state.servers.clone())
 }
 

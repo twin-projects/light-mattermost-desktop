@@ -21,7 +21,7 @@
             console.info(servers);
 	const addServer = async () => {
 		await add_server(server_name, server_address).then(async (newServers) => {
-		    state.update((value) => ({ ...value, servers: newServers }));
+		 	state.update((value) => ({ ...value, servers: newServers }));
 		 });
         goto("/login").catch(console.error);
 	};
