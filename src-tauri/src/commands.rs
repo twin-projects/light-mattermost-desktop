@@ -93,11 +93,17 @@ pub async fn add_server(
     Ok(state.servers.clone())
 }
 
+#[derive(Debug, serde::Serialize, Clone)]
+pub struct ChangeServerOutput {
+    pub current: Server,
+    pub list: Vec<Server>,
+}
+
 #[tauri::command]
-pub async fn set_current_server(
+pub async fn change_server(
     server_name: &str,
     state_mutex: State<'_, Mutex<ServerState>>,
-) -> Result<Vec<Server>, Error> {
+) -> Result<ChangeServerOutput, Error> {
     let mut state = state_mutex.lock().await;
     let Some(current) = state
         .servers
@@ -110,7 +116,10 @@ pub async fn set_current_server(
     state.current = Some(current.clone());
     tracing::info!("{:?}", current);
     tracing::info!("{:?}", state.servers);
-    Ok(state.servers.clone())
+    Ok(ChangeServerOutput {
+        list: state.servers.clone(),
+        current,
+    })
 }
 
 #[tauri::command]
@@ -136,4 +145,3 @@ pub async fn get_all_servers(
     tracing::debug!("all servers: {:?}", servers);
     Ok(servers)
 }
-

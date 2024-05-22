@@ -5,19 +5,12 @@
 	import { FaSolidBars, FaSolidCircleUser, FaSolidServer, FaSolidCirclePlus } from 'svelte-icons-pack/fa';
 	import { servers, state } from '$lib/store';
 	import { goto } from '$app/navigation';
-	import { set_current_server } from '$lib/controllers';
 	import Dropdown from '$lib/ui/Dropdown.svelte';
 
 	let serverValue: string = $state.currentServer?.name ?? 'Select';
 
     const goToAddServer = async () => {
         goto("/add_server");
-    };
-
-    const changeServer = async (name) => {
-        await set_current_server(name).then((servers) => {
-            console.log(servers);
-        }).catch(console.error);
     };
 </script>
 
@@ -29,13 +22,15 @@
 				<Icon src={FaSolidServer} />
 			</svelte:fragment>
 			<svelte:fragment slot="elements">
+                <form action="?/changeServer">
 				{#each $servers as server}
 					<ListBoxItem bind:group={serverValue} name="medium" value={server.name}>
-						<button on:click={() => changeServer(server.name)}>
+						<button>
                             {server.name}
                         </button>
 					</ListBoxItem>
 				{/each}
+                </form>
 			</svelte:fragment>
 		</Dropdown>
         <button on:click={goToAddServer}>

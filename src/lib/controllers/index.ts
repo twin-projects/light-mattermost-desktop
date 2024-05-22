@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/tauri';
 import type { TeamModel } from '$lib/types/team.model';
-import type { ServerModel } from '$lib/types/server.model';
+import type { ServerModel, ChangeServerResult } from '$lib/types/server.model';
 import type { UserModel } from '$lib/types/login.model';
 
 const handle_error = (e: undefined): null => {
@@ -17,6 +17,16 @@ export const get_current_server = async (): Promise<ServerModel | null> =>
 		})
 		.catch(handle_error);
 
+export const change_server = async (server: String): Promise<ChangeServerResult | null> =>
+	invoke('change_server', { server_name: server })
+		.then(server_url => server_url as ChangeServerResult)
+		.then((result) => {
+            let current = result.current;
+			console.log('current server', current.name, current.url);
+			return result;
+		})
+		.catch(handle_error);
+
 export const get_all_servers = async (): Promise<ServerModel[] | null> =>
 	invoke('get_all_servers')
 		.then(servers => servers as ServerModel[])
@@ -27,7 +37,7 @@ export const get_my_teams = async () =>
 		.then(myTeams => myTeams as TeamModel[])
 		.catch(handle_error);
 
-export const add_server = async (name: string, url: string): Promise<ServerModel | null> =>
+export const add_server = async (name: string, url: string): Promise<ServerModel[] | null> =>
 	invoke('add_server', { name, url })
 		.then((current) => {
 			console.log(`Switch to server url: ${current}`);

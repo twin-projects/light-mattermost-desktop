@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { UserModel } from '$lib/types/login.model';
-	import { invoke } from '@tauri-apps/api/tauri';
+	// import { invoke } from '@tauri-apps/api/tauri';
 	import { goto } from '$app/navigation';
-	import { login } from '$lib/controllers';
+	// import { login } from '$lib/controllers';
 	import { getToastStore, initializeStores, Toast } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
 	import { state } from '$lib/store';
@@ -25,18 +25,18 @@
 	};
 
 	const authenticate = async () => {
-		await login(loginId, password).then(async (user) => {
-			state.update((value) => ({ ...value, user: user }));
-			if (user) {
-				await toastMessage(user);
-				goto('/').catch(console.error);
-			}
-		});
+		// await login(loginId, password).then(async (user) => {
+		// 	state.update((value) => ({ ...value, user: user }));
+		// 	if (user) {
+		// 		await toastMessage(user);
+		// 		goto('/').catch(console.error);
+		// 	}
+		// });
 	};
 
 	const logout = async () => {
-		await invoke('logout');
-		$page.data.user = null;
+		// await invoke('logout');
+		// $page.data.user = null;
 	};
 </script>
 
@@ -45,7 +45,7 @@
 	<h1>Login</h1>
 	<div class="w-full max-w-xs">
 		{#if !$page.data.user}
-			<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+			<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" method="POST" action="/login">
 				<div class="mb-4">
 					<label class="block text-gray-700 text-sm font-bold mb-2" for="username">
 						Username

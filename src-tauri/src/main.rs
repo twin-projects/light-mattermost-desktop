@@ -4,21 +4,21 @@
 use reqwest::Client;
 use tokio::sync::Mutex;
 
-use crate::commands::{add_server, get_all_servers, get_current_server, login, logout, my_teams};
+use crate::commands::*;
 use crate::errors::*;
 use crate::states::{ServerState, UserState};
 
 mod api;
+mod commands;
 pub mod errors;
 pub mod models;
-pub mod storage;
 mod states;
-mod commands;
+pub mod storage;
 
 impl serde::Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::ser::Serializer,
+    where
+        S: serde::ser::Serializer,
     {
         serializer.serialize_str(self.to_string().as_ref())
     }
@@ -30,7 +30,6 @@ impl<T> From<std::sync::PoisonError<T>> for Error {
     }
 }
 
-
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
@@ -39,13 +38,19 @@ async fn main() {
         .manage(Mutex::new(UserState::default()))
         .manage(Mutex::new(ServerState::default()))
         .manage(storage::Storage::new())
+        .on_page_load(|window, _load_payload| {
+            window.open_devtools();
+            // window.close_devtools();
+            //
+        })
         .invoke_handler(tauri::generate_handler![
             login,
             logout,
             add_server,
             get_current_server,
             get_all_servers,
-            my_teams
+            my_teams,
+            change_server
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
