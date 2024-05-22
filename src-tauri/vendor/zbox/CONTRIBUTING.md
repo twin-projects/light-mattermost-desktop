@@ -108,9 +108,9 @@ reproduce the failed test case. Please check more details in the
 
 Run the fuzz test separately:
 
- ```bash
- cargo test --tests fuzz_test --features storage-file -- --nocapture
- ```
+```bash
+cargo test --tests fuzz_test --features storage-file -- --nocapture
+```
 
 ### Run random IO error test
 
@@ -143,4 +143,3 @@ cargo test --tests perf_test --release --features test-perf -- --nocapture
 
 In all ZboxFS-related forums, we follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 For escalation or moderation issues please contact us (support@zbox.io).
-

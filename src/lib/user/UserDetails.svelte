@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { UserModel } from '$lib/types/login.model';
 
-	export let user: UserModel
+	export let user: UserModel;
 </script>
 
 {#if user?.first_name}

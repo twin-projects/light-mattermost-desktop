@@ -8,7 +8,7 @@
 
 	initializeStores();
 
-    $: if (data.user === null) goto('/login').catch(console.error);
+	$: if (data.user === null) goto('/login').catch(console.error);
 </script>
 
 <div class="container h-full mx-auto flex justify-center items-center">

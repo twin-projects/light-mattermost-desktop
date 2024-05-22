@@ -1,9 +1,9 @@
 export type ServerModel = {
-	name: string,
-	url: string
-}
+	name: string;
+	url: string;
+};
 
 export type ChangeServerResult = {
-    current: ServerModel,
-    list: ServerModel[],
-}
+	current: ServerModel;
+	list: ServerModel[];
+};

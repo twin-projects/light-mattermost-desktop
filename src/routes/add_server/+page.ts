@@ -1,14 +1,8 @@
-import { defaultState, type PageState, state } from '$lib/store';
+import { defaultState, type PageState, state, initNavigation } from '$lib/store';
 
-export const prerender = false; // 'auto'; //true;
-export const ssr = true;
+export const prerender = true;
+export const ssr = false;
 
-export const load = () => {
-	let pageState: PageState = defaultState;
-	state.subscribe(value => {
-		pageState = value;
-	});
-	return {
-		servers: pageState.servers
-	};
+export const load = async () => {
+	await initNavigation();
 };

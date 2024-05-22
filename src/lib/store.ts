@@ -3,6 +3,12 @@ import type { UserModel } from '$lib/types/login.model';
 import type { TeamModel } from '$lib/types/team.model';
 import type { Writable } from 'svelte/store';
 import { writable } from 'svelte/store';
+import { add_server, login, change_server } from '$lib/controllers';
+import { get_all_servers, get_my_teams, get_current_server } from '$lib/controllers';
+
+export const addServer = add_server;
+export const loginCmd = login;
+export const changeServer = change_server;
 
 export interface PageState {
 	currentServer: ServerModel | null;
@@ -32,3 +38,30 @@ export const defaultState = {
 
 export const state = writable(defaultState);
 
+export const initNavigation = async () => {
+	let pageState: PageState = defaultState;
+
+	state.subscribe((value) => {
+		pageState = value;
+	});
+	if (pageState.user !== null) {
+		await get_my_teams().then((teams) => {
+			state.update((value) => ({ ...value, teams: teams ?? [] }));
+			pageState.teams = teams ?? [];
+		});
+	}
+	await get_all_servers().then((be_servers) => {
+		if (be_servers) {
+			pageState.servers = be_servers;
+			servers.update(() => be_servers);
+		}
+	});
+	await get_current_server().then((current) => {
+		state.update((value) => ({ ...value, currentServer: current }));
+		pageState.currentServer = current;
+	});
+
+	console.log(pageState);
+
+	return { ...pageState };
+};

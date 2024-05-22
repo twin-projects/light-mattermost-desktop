@@ -1,5 +1,5 @@
-<img src="https://zboxfs.github.io/zbox/images/logo.svg" alt="ZboxFS Logo" height="96" /> ZboxFS
-======
+# <img src="https://zboxfs.github.io/zbox/images/logo.svg" alt="ZboxFS Logo" height="96" /> ZboxFS
+
 [![GitHub action](https://github.com/zboxfs/zbox/workflows/build/badge.svg)](https://github.com/zboxfs/zbox/actions)
 [![Crates.io](https://img.shields.io/crates/d/zbox.svg)](https://crates.io/crates/zbox)
 [![Crates.io](https://img.shields.io/crates/v/zbox.svg)](https://crates.io/crates/zbox)
@@ -25,8 +25,8 @@ including memory, OS file system, RDBMS and key-value object store.
 ZboxFS is under active development, we are not responsible for any data loss
 or leak caused by using it. Always back up your files and use at your own risk!
 
-Features
-========
+# Features
+
 - Everything is encrypted :lock:, including metadata and directory structure,
   no knowledge can be leaked to underlying storage
 - State-of-the-art cryptography: AES-256-GCM (hardware), XChaCha20-Poly1305,
@@ -68,7 +68,7 @@ Below is the feature comparison list.
 | Content versioning          | :heavy_check_mark:       | :heavy_multiplication_x: | :heavy_multiplication_x: |
 | COW semantics               | :heavy_check_mark:       | partial                  | :heavy_multiplication_x: |
 | ACID Transaction            | :heavy_check_mark:       | :heavy_multiplication_x: | :heavy_multiplication_x: |
-| Varieties of storages           | :heavy_check_mark:       | :heavy_multiplication_x: | :heavy_multiplication_x: |
+| Varieties of storages       | :heavy_check_mark:       | :heavy_multiplication_x: | :heavy_multiplication_x: |
 | API access                  | :heavy_check_mark:       | through VFS              | through VFS              |
 | Symbolic links              | :heavy_multiplication_x: | :heavy_check_mark:       | depends on inner FS      |
 | Users and permissions       | :heavy_multiplication_x: | :heavy_check_mark:       | :heavy_check_mark:       |
@@ -82,27 +82,27 @@ ZboxFS supports a variety of underlying storages. Memory storage is enabled by
 default. All the other storages can be enabled individually by specifying its
 corresponding Cargo feature when building ZboxFS.
 
-| Storage            | URI identifier  | Cargo Feature       |
-| ------------------ | --------------- | ------------------- |
-| Memory             | "mem://"        | N/A                 |
-| OS file system     | "file://"       | storage-file        |
-| SQLite             | "sqlite://"     | storage-sqlite      |
-| Redis              | "redis://"      | storage-redis       |
-| Zbox Cloud Storage | "zbox://"       | storage-zbox-native |
+| Storage            | URI identifier | Cargo Feature       |
+| ------------------ | -------------- | ------------------- |
+| Memory             | "mem://"       | N/A                 |
+| OS file system     | "file://"      | storage-file        |
+| SQLite             | "sqlite://"    | storage-sqlite      |
+| Redis              | "redis://"     | storage-redis       |
+| Zbox Cloud Storage | "zbox://"      | storage-zbox-native |
 
 \* Visit [zbox.io](https://zbox.io) to learn more about Zbox Cloud Storage.
 
 ## Specs
 
-| Algorithm and data structure         | Value                             |
-| ------------------------------------ | --------------------------------- |
-| Authenticated encryption             | AES-256-GCM or XChaCha20-Poly1305 |
-| Password hashing                     | Argon2                            |
-| Key derivation                       | BLAKE2B                           |
-| Content dedup                        | Rabin rolling hash                |
-| File dedup                           | Merkle tree                       |
-| Index structure                      | Log-structured merge-tree         |
-| Compression                          | LZ4 in fast mode                  |
+| Algorithm and data structure | Value                             |
+| ---------------------------- | --------------------------------- |
+| Authenticated encryption     | AES-256-GCM or XChaCha20-Poly1305 |
+| Password hashing             | Argon2                            |
+| Key derivation               | BLAKE2B                           |
+| Content dedup                | Rabin rolling hash                |
+| File dedup                   | Merkle tree                       |
+| Index structure              | Log-structured merge-tree         |
+| Compression                  | LZ4 in fast mode                  |
 
 ### Limits
 
@@ -120,56 +120,56 @@ corresponding Cargo feature when building ZboxFS.
 
 ### Metadata
 
-| Metadata                                  | Value                        |
-| ----------------------------------------- | ---------------------------- |
-| Stores file owner                         | No                           |
-| POSIX file permissions                    | No                           |
-| Creation timestamps                       | Yes                          |
-| Last access / read timestamps             | No                           |
-| Last change timestamps                    | Yes                          |
-| Access control lists                      | No                           |
-| Security                                  | Integrated with crypto       |
-| Extended attributes                       | No                           |
+| Metadata                      | Value                  |
+| ----------------------------- | ---------------------- |
+| Stores file owner             | No                     |
+| POSIX file permissions        | No                     |
+| Creation timestamps           | Yes                    |
+| Last access / read timestamps | No                     |
+| Last change timestamps        | Yes                    |
+| Access control lists          | No                     |
+| Security                      | Integrated with crypto |
+| Extended attributes           | No                     |
 
 ### Capabilities
 
-| Capability                                | Value                        |
-| ----------------------------------------- | ---------------------------- |
-| Hard links                                | No                           |
-| Symbolic links                            | No                           |
-| Case-sensitive                            | Yes                          |
-| Case-preserving                           | Yes                          |
-| File Change Log                           | By content versioning        |
-| Filesystem-level encryption               | Yes                          |
-| Data deduplication                        | Yes                          |
-| Data checksums                            | Integrated with crypto       |
-| Offline grow                              | No                           |
-| Online grow                               | Auto                         |
-| Offline shrink                            | No                           |
-| Online shrink                             | Auto                         |
+| Capability                  | Value                  |
+| --------------------------- | ---------------------- |
+| Hard links                  | No                     |
+| Symbolic links              | No                     |
+| Case-sensitive              | Yes                    |
+| Case-preserving             | Yes                    |
+| File Change Log             | By content versioning  |
+| Filesystem-level encryption | Yes                    |
+| Data deduplication          | Yes                    |
+| Data checksums              | Integrated with crypto |
+| Offline grow                | No                     |
+| Online grow                 | Auto                   |
+| Offline shrink              | No                     |
+| Online shrink               | Auto                   |
 
 ### Allocation and layout policies
 
-| Feature                     | Value                             |
-| --------------------------- | --------------------------------- |
-| Address allocation scheme   | Append-only, linear address space |
-| Sparse files                | No                                |
-| Transparent compression     | Yes                               |
-| Extents                     | No                                |
-| Copy on write               | Yes                               |
+| Feature                   | Value                             |
+| ------------------------- | --------------------------------- |
+| Address allocation scheme | Append-only, linear address space |
+| Sparse files              | No                                |
+| Transparent compression   | Yes                               |
+| Extents                   | No                                |
+| Copy on write             | Yes                               |
 
 ### Storage fragmentation
 
-| Fragmentation                | Value                        |
-| ---------------------------- | ---------------------------- |
-| Memory storage               | No                           |
-| File storage                 | fragment unit size < 32 MiB  |
-| RDBMS storage                | No                           |
-| Key-value storage            | No                           |
-| Zbox cloud storage           | fragment unit size < 128 KiB |
+| Fragmentation      | Value                        |
+| ------------------ | ---------------------------- |
+| Memory storage     | No                           |
+| File storage       | fragment unit size < 32 MiB  |
+| RDBMS storage      | No                           |
+| Key-value storage  | No                           |
+| Zbox cloud storage | fragment unit size < 128 KiB |
 
-How to use
-==========
+# How to use
+
 For reference documentation, please visit [documentation](https://docs.rs/zbox).
 
 ## Requirements
@@ -285,38 +285,36 @@ And then re-build the code.
 cargo build
 ```
 
-Performance
-============
+# Performance
 
 The performance test is run on a Macbook Pro 2017 laptop with spec as below.
 
-| Spec                    | Value                       |
-| ----------------------- | --------------------------- |
-| Processor Name:         | Intel Core i7               |
-| Processor Speed:        | 3.5 GHz                     |
-| Number of Processors:   | 1                           |
-| Total Number of Cores:  | 2                           |
-| L2 Cache (per Core):    | 256 KB                      |
-| L3 Cache:               | 4 MB                        |
-| Memory:                 | 16 GB                       |
-| OS Version:             | macOS High Sierra 10.13.6   |
+| Spec                   | Value                     |
+| ---------------------- | ------------------------- |
+| Processor Name:        | Intel Core i7             |
+| Processor Speed:       | 3.5 GHz                   |
+| Number of Processors:  | 1                         |
+| Total Number of Cores: | 2                         |
+| L2 Cache (per Core):   | 256 KB                    |
+| L3 Cache:              | 4 MB                      |
+| Memory:                | 16 GB                     |
+| OS Version:            | macOS High Sierra 10.13.6 |
 
 Test result:
 
-|                               | Read            | Write          | TPS          |
-| ----------------------------- | --------------- | -------------- | ------------ |
-| Baseline (memcpy):            | 3658.23 MB/s    | 3658.23 MB/s   | N/A          |
-| Baseline (file):              | 1307.97 MB/s    | 2206.30 MB/s   | N/A          |
-| Memory storage (no compress): | 605.01 MB/s     | 186.20 MB/s    | 1783 tx/s    |
-| Memory storage (compress):    | 505.04 MB/s     | 161.11 MB/s    | 1180 tx/s    |
-| File storage (no compress):   | 445.28 MB/s     | 177.39 MB/s    | 313 tx/s     |
-| File storage (compress):      | 415.85 MB/s     | 158.22 MB/s    | 325 tx/s     |
+|                               | Read         | Write        | TPS       |
+| ----------------------------- | ------------ | ------------ | --------- |
+| Baseline (memcpy):            | 3658.23 MB/s | 3658.23 MB/s | N/A       |
+| Baseline (file):              | 1307.97 MB/s | 2206.30 MB/s | N/A       |
+| Memory storage (no compress): | 605.01 MB/s  | 186.20 MB/s  | 1783 tx/s |
+| Memory storage (compress):    | 505.04 MB/s  | 161.11 MB/s  | 1180 tx/s |
+| File storage (no compress):   | 445.28 MB/s  | 177.39 MB/s  | 313 tx/s  |
+| File storage (compress):      | 415.85 MB/s  | 158.22 MB/s  | 325 tx/s  |
 
 To run the performance test on your own computer, please follow the
 instructions in [CONTRIBUTING.md](CONTRIBUTING.md#run-performance-test).
 
-Contribution
-============
+# Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall
@@ -325,13 +323,12 @@ be licensed as above, without any additional terms of conditions.
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of
 conduct, and the process for submitting pull requests to us.
 
-Community
-=========
+# Community
 
 - [Twitter](https://twitter.com/ZboxFS)
 
-License
-=======
+# License
+
 `ZboxFS` is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE)
 file for details.
 
