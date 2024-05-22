@@ -18,6 +18,8 @@ pub enum NativeError {
     FetchTeams,
     #[error("Unable to perform login, mattermost server return an error")]
     PerformLogin,
+    #[error("Unknown server")]
+    UnknownServer,
 }
 
 #[derive(Debug, thiserror::Error)]

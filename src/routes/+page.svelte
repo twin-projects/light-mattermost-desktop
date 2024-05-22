@@ -4,9 +4,9 @@
 	import { initializeStores, Toast } from '@skeletonlabs/skeleton';
 	import UserTeams from '$lib/team/UserTeams.svelte';
 
-	initializeStores();
-
 	export let data: PageData;
+
+	initializeStores();
 
 	$: if (data.user === null) goto('/login').catch(console.error);
 </script>

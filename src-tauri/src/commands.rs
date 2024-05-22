@@ -75,7 +75,6 @@ pub async fn add_server(
     url: &str,
     state_mutex: State<'_, Mutex<ServerState>>,
 ) -> Result<Vec<Server>, ()> {
-    let mut state = state_mutex.lock().await;
     let current = match Url::parse(url) {
         Ok(url) => Server {
             name: name.to_owned(),
@@ -86,9 +85,41 @@ pub async fn add_server(
             return Err(());
         }
     };
+    let mut state = state_mutex.lock().await;
     state.current = Some(current.clone());
     state.servers.push(current.clone());
+    tracing::info!("{:?}", state.current);
+    tracing::info!("{:?}", state.servers);
     Ok(state.servers.clone())
+}
+
+#[derive(Debug, serde::Serialize, Clone)]
+pub struct ChangeServerOutput {
+    pub current: Server,
+    pub list: Vec<Server>,
+}
+
+#[tauri::command]
+pub async fn change_server(
+    server_name: &str,
+    state_mutex: State<'_, Mutex<ServerState>>,
+) -> Result<ChangeServerOutput, Error> {
+    let mut state = state_mutex.lock().await;
+    let Some(current) = state
+        .servers
+        .iter()
+        .find(|server| server.name == server_name)
+        .cloned()
+    else {
+        return Err(NativeError::UnknownServer)?;
+    };
+    state.current = Some(current.clone());
+    tracing::info!("{:?}", current);
+    tracing::info!("{:?}", state.servers);
+    Ok(ChangeServerOutput {
+        list: state.servers.clone(),
+        current,
+    })
 }
 
 #[tauri::command]
@@ -114,4 +145,3 @@ pub async fn get_all_servers(
     tracing::debug!("all servers: {:?}", servers);
     Ok(servers)
 }
-

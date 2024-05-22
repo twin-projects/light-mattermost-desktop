@@ -1,7 +1,7 @@
 import { defaultState, type PageState, servers, state } from '$lib/store';
-import { get_all_servers, get_my_teams } from '$lib/controllers';
+import { get_all_servers, get_my_teams, get_current_server } from '$lib/controllers';
 
-export const prerender = 'auto';
+export const prerender = true;
 export const ssr = false;
 
 export const load = async () => {
@@ -22,6 +22,12 @@ export const load = async () => {
 			servers.update(() => be_servers);
 		}
 	});
+	await get_current_server().then((current) => {
+		state.update((value) => ({ ...value, currentServer: current }));
+		pageState.currentServer = current;
+	});
+
+	console.log(pageState);
 
 	return { ...pageState };
 };
