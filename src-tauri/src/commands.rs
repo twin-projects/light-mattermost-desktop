@@ -27,6 +27,7 @@ pub async fn login(
         None,
     )
     .await?;
+    tracing::info!("result: {}", &result);
     let Response::LoginResponse(token, _id, username) = result else {
         return Err(NativeError::UnexpectedResponse)?;
     };

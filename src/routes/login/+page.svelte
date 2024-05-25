@@ -4,7 +4,9 @@
 	import { goto } from '$app/navigation';
 	import { getToastStore, initializeStores, Toast } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
-	import { state, loginCmd } from '$lib/store';
+	import { loginCmd, state } from '$lib/store';
+	import { failed_toast, user_logged_in } from '$lib/toast';
+	import { handle_response } from '$lib/utils/server.utils';
 
 	initializeStores();
 
@@ -13,24 +15,21 @@
 	let loginId = 'admin';
 	let password = 'admin123!';
 
-	const toastMessage = async (user: UserModel) => {
-		toastStore.trigger({
-			message: `You are login as ${user?.username}`,
-			autohide: false,
-			timeout: 10000,
-			background: 'variant-filled-success'
-		});
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+	const toastMessage = (user: UserModel) => {
+		toastStore.trigger(user_logged_in(user?.username));
 	};
 
 	const authenticate = async () => {
-		await loginCmd(loginId, password).then(async (user) => {
-			state.update((value) => ({ ...value, user: user }));
-			if (user) {
-				await toastMessage(user);
-				goto('/').catch(console.error);
-			}
-		});
+		await loginCmd(loginId, password)
+			.then(response => handle_response(
+				response,
+				(error) => toastStore.trigger(failed_toast(error)),
+				(user) => {
+					state.update((value) => ({ ...value, user }));
+					toastMessage(user);
+					goto('/').catch(console.error);
+				}
+			));
 	};
 
 	const logout = async () => {
@@ -84,7 +83,7 @@
 			<button
 				on:click={logout}
 				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-				>Logout
+			>Logout
 			</button>
 			<!--			<UserDetails user={user} />-->
 		{/if}
