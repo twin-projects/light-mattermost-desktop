@@ -1,6 +1,7 @@
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use thiserror::Error;
 
 pub enum ApiEvent {
@@ -85,18 +86,11 @@ pub struct ServerApiError {
 
 impl fmt::Display for ServerApiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
-        write!(
-            f,
-            "{} {}message{}: {}{}{}, {}status_code{}: {}, {}request_id{}: {}{}{} {}",
-            "{",
-            r#"""#,r#"""#,
-            r#"""#, &self.message, r#"""#,
-            r#"""#,r#"""#,
-            &self.status_code,
-            r#"""#,r#"""#,
-            r#"""#,  &self.request_id,  r#"""#,
-            "}"
-        )
+        json!({
+            "message": &self.message,
+            "status_code": &self.status_code,
+            "request_id": &self.request_id
+        })
+        .fmt(f)
     }
 }
