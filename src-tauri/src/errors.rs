@@ -33,7 +33,7 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    Standard(#[from] fmt::Error),
+    FormatError(#[from] fmt::Error),
     #[error("the mutex was poisoned")]
     PoisonError(String),
     #[error(transparent)]
