@@ -50,6 +50,8 @@ async fn main() {
             get_current_server,
             get_all_servers,
             my_teams,
+            my_team_members,
+            my_channels,
             change_server
         ])
         .run(tauri::generate_context!())

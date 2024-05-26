@@ -21,11 +21,16 @@ pub async fn handle_request(
                 server_url.join("users/login").unwrap(),
                 &login_id,
                 &password,
-            )
-                .await
+            ).await
         }
         ApiEvent::MyTeams => {
             my_teams(client, server_url.join("users/me/teams").unwrap(), token).await
+        }
+        ApiEvent::MyTeamMembers => {
+            my_team_members(client, server_url.join("users/me/teams/members").unwrap(), token).await
+        }
+        ApiEvent::MyChannels => {
+            my_channels(client, server_url.join("users/me/channels").unwrap(), token).await
         }
     }
 }
@@ -104,5 +109,31 @@ async fn my_teams(client: &Client, uri: Url, token: Option<&String>) -> Result<R
     } else {
         tracing::error!("Failed to get my teams!");
         Err(NativeError::FetchTeams)?
+    }
+}
+
+async fn my_team_members(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
+    tracing::info!("Get my team members: {}", uri);
+    let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
+    if response.status().is_success() {
+        let team_members: Vec<TeamMember> = response.json::<Vec<TeamMember>>().await.unwrap();
+        tracing::trace!("Received my team members: {:?}", team_members);
+        Ok(Response::MyTeamMembers(team_members))
+    } else {
+        tracing::error!("Failed to get my team members!");
+        Err(NativeError::FetchTeamMembers)?
+    }
+}
+
+async fn my_channels(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
+    tracing::info!("Get my channels: {}", uri);
+    let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
+    if response.status().is_success() {
+        let channels: Vec<Channel> = response.json::<Vec<Channel>>().await.unwrap();
+        tracing::trace!("Received my channels: {:?}", channels);
+        Ok(Response::MyChannels(channels))
+    } else {
+        tracing::error!("Failed to get my channels!");
+        Err(NativeError::FetchChannels)?
     }
 }

@@ -17,7 +17,7 @@
 	const goToAddServer = async () => {
 		goto('/add_server');
 	};
-	const sendChangeServer = async (serverName) => {
+	const sendChangeServer = async (serverName: string) => {
 		await changeServer(serverName);
 		// goto();
 	};

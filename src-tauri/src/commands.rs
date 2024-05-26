@@ -3,7 +3,7 @@ use tauri::State;
 use tokio::sync::Mutex;
 use url::Url;
 
-use crate::api::call_event::{ApiEvent, Response, Team, UserDetails};
+use crate::api::call_event::{ApiEvent, Channel, Response, Team, TeamMember, UserDetails};
 use crate::api::handle_request;
 use crate::errors::{Error, NativeError};
 use crate::states::{Server, ServerState, UserState};
@@ -60,6 +60,54 @@ pub async fn my_teams(
     };
     user_state.teams = Some(teams.to_owned());
     Ok(teams.to_owned())
+}
+
+#[tauri::command]
+pub async fn my_team_members(
+    user_state_mutex: State<'_, Mutex<UserState>>,
+    server_state_mutex: State<'_, Mutex<ServerState>>,
+    http_client: State<'_, Client>,
+) -> Result<Vec<TeamMember>, Error> {
+    let mut user_state = user_state_mutex.lock().await;
+    let token_option = user_state.token.as_ref();
+    let server_state = server_state_mutex.lock().await;
+    let current_url = server_state.current.as_ref().unwrap();
+    let result = handle_request(
+        &http_client,
+        &current_url.url,
+        &ApiEvent::MyTeamMembers,
+        token_option,
+    )
+    .await?;
+    let Response::MyTeamMembers(team_members) = result else {
+        return Err(NativeError::UnexpectedResponse)?;
+    };
+    user_state.team_members = Some(team_members.to_owned());
+    Ok(team_members.to_owned())
+}
+
+#[tauri::command]
+pub async fn my_channels(
+    user_state_mutex: State<'_, Mutex<UserState>>,
+    server_state_mutex: State<'_, Mutex<ServerState>>,
+    http_client: State<'_, Client>,
+) -> Result<Vec<Channel>, Error> {
+    let mut user_state = user_state_mutex.lock().await;
+    let token_option = user_state.token.as_ref();
+    let server_state = server_state_mutex.lock().await;
+    let current_url = server_state.current.as_ref().unwrap();
+    let result = handle_request(
+        &http_client,
+        &current_url.url,
+        &ApiEvent::MyChannels,
+        token_option,
+    )
+    .await?;
+    let Response::MyChannels(channels) = result else {
+        return Err(NativeError::UnexpectedResponse)?;
+    };
+    user_state.channels = Some(channels.to_owned());
+    Ok(channels.to_owned())
 }
 
 #[tauri::command]
