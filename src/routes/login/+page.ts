@@ -1,6 +1,6 @@
-import { defaultState, type PageState, state, initNavigation } from '$lib/store';
+import { initNavigation } from '$lib/store';
 
-export const prerender = true;
+export const prerender = false;
 export const ssr = false;
 
 export const load = async () => {

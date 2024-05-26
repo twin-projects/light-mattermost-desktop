@@ -1,3 +1,7 @@
+use std::fmt;
+
+use crate::api::call_event::ServerApiError;
+
 #[derive(thiserror::Error, Debug)]
 pub enum StorageError {
     #[error("Failed to read credentials: {_0}")]
@@ -29,11 +33,14 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    Standard(#[from] core::fmt::Error),
+    FormatError(#[from] fmt::Error),
     #[error("the mutex was poisoned")]
     PoisonError(String),
+    #[error(transparent)]
+    ApiError(#[from] ServerApiError),
     #[error(transparent)]
     Url(#[from] url::ParseError),
     #[error(transparent)]
     Storage(#[from] StorageError),
 }
+

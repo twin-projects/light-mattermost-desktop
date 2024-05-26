@@ -1,5 +1,8 @@
 use std::fmt;
+use std::fmt::{Debug};
+
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 pub enum ApiEvent {
     LoginEvent(String, String),
@@ -71,4 +74,19 @@ pub struct Team {
     pub description: String,
     pub email: String,
     pub company_name: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Error)]
+pub struct ServerApiError {
+    pub id: String,
+    pub message: String,
+    pub request_id: String,
+    pub status_code: i16,
+}
+
+impl fmt::Display for ServerApiError {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let json: String = serde_json::to_string(self).unwrap();
+        formatter.write_str(json.as_str())
+    }
 }

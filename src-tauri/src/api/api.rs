@@ -5,6 +5,7 @@ use url::Url;
 
 use crate::api::call_event::*;
 use crate::errors::*;
+use crate::errors::Error::ApiError;
 
 pub async fn handle_request(
     client: &Client,
@@ -61,7 +62,11 @@ async fn login(
     };
     let response = handle(client, Method::POST, uri, Some(login_request), None).await;
     if !response.status().is_success() {
-        return Err(NativeError::PerformLogin)?;
+        tracing::error!("Failed to perform Login body: {:?}", &response.status());
+        return match &response.json::<ServerApiError>().await {
+            Ok(e) => Err(ApiError(e.to_owned()))?,
+            _ => Err(NativeError::PerformLogin)?
+        }
     }
     let token = get_token(&response.headers()).to_owned();
     let user_response = &response.json::<UserResponse>().await;
