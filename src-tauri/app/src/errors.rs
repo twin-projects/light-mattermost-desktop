@@ -47,4 +47,3 @@ pub enum Error {
     #[error(transparent)]
     Storage(#[from] StorageError),
 }
-

@@ -29,6 +29,7 @@ zbox = { workspace = true, default-features = false, features = ["storage-file",
 models = { workspace = true }
 rand = { version = "0" }
 bincode = "1"
+derive_more = "0.99.17"
 
 [dev-dependencies]
 tempdir = "0.3.7"

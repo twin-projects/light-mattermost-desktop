@@ -1,11 +1,11 @@
-use reqwest::{Client, Method};
 use reqwest::header::HeaderMap;
+use reqwest::{Client, Method};
 use serde::Serialize;
 use url::Url;
 
 use crate::api::call_event::*;
-use crate::errors::*;
 use crate::errors::Error::ApiError;
+use crate::errors::*;
 
 pub async fn handle_request(
     client: &Client,
@@ -21,13 +21,19 @@ pub async fn handle_request(
                 server_url.join("users/login").unwrap(),
                 &login_id,
                 &password,
-            ).await
+            )
+            .await
         }
         ApiEvent::MyTeams => {
             my_teams(client, server_url.join("users/me/teams").unwrap(), token).await
         }
         ApiEvent::MyTeamMembers => {
-            my_team_members(client, server_url.join("users/me/teams/members").unwrap(), token).await
+            my_team_members(
+                client,
+                server_url.join("users/me/teams/members").unwrap(),
+                token,
+            )
+            .await
         }
         ApiEvent::MyChannels => {
             my_channels(client, server_url.join("users/me/channels").unwrap(), token).await
@@ -70,15 +76,16 @@ async fn login(
         tracing::error!("Failed to perform Login body: {:?}", &response.status());
         return match &response.json::<ServerApiError>().await {
             Ok(e) => Err(ApiError(e.to_owned()))?,
-            _ => Err(NativeError::PerformLogin)?
-        }
+            _ => Err(NativeError::PerformLogin)?,
+        };
     }
     let token = get_token(&response.headers()).to_owned();
     let user_response = &response.json::<UserResponse>().await;
+    tracing::debug!("user response: {user_response:?}");
     match user_response {
         Ok(user) => {
+            tracing::info!("Login successful: {user:?}");
             let UserResponse { id, username, .. } = user;
-            tracing::info!("Login successful");
             Ok(Response::LoginResponse(
                 token,
                 id.to_owned(),
@@ -112,7 +119,11 @@ async fn my_teams(client: &Client, uri: Url, token: Option<&String>) -> Result<R
     }
 }
 
-async fn my_team_members(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
+async fn my_team_members(
+    client: &Client,
+    uri: Url,
+    token: Option<&String>,
+) -> Result<Response, Error> {
     tracing::info!("Get my team members: {}", uri);
     let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
     if response.status().is_success() {

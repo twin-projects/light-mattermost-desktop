@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+#[derive(Debug)]
 pub enum ApiEvent {
     LoginEvent(String, String),
     MyTeams,
@@ -11,7 +12,7 @@ pub enum ApiEvent {
     MyChannels,
 }
 
-#[derive()]
+#[derive(Debug)]
 pub enum Response {
     LoginResponse(
         String, // token
@@ -31,12 +32,11 @@ pub enum Response {
 
 impl fmt::Display for Response {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // Customize so only `x` and `y` are denoted.
         write!(f, "{}", self)
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LoginRequest {
     pub login_id: String,
     pub password: String,
@@ -69,7 +69,7 @@ pub struct UserResponse {
     pub roles: String,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Debug)]
 pub struct UserDetails {
     pub username: String,
 }
@@ -158,7 +158,6 @@ pub struct ServerApiError {
 
 impl fmt::Display for ServerApiError {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        let json: String = serde_json::to_string(self).unwrap();
-        formatter.write_str(json.as_str())
+        formatter.write_str(&serde_json::to_string(self).unwrap())
     }
 }
