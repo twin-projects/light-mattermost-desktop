@@ -16,20 +16,27 @@
 	let password = 'admin123!';
 
 	const toastMessage = (user: UserModel) => {
+        console.info(user);
 		toastStore.trigger(user_logged_in(user?.username));
 	};
 
 	const authenticate = async () => {
-		await loginCmd(loginId, password)
-			.then(response => handle_response(
-				response,
-				(error) => toastStore.trigger(failed_toast(error)),
-				(user) => {
-					state.update((value) => ({ ...value, user }));
-					toastMessage(user);
-					goto('/').catch(console.error);
-				}
-			));
+        console.info("authenticate", loginId, password);
+	    const response = await loginCmd(loginId, password);
+        console.log("authenticate response", response);
+        return handle_response(
+            response,
+            (error) => {
+                console.error(error);
+                return toastStore.trigger(failed_toast(error));
+            },
+            (user) => {
+                console.log(user);
+                state.update((value) => ({ ...value, user }));
+                toastMessage(user);
+                return goto('/').catch(console.error);
+            }
+        );
 	};
 
 	const logout = async () => {
@@ -72,8 +79,7 @@
 				<div class="flex items-center justify-between">
 					<button
 						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						on:click={authenticate}
-						type="button"
+						type="submit"
 					>
 						Sign In
 					</button>

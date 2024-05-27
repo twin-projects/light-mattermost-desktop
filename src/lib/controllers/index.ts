@@ -8,6 +8,9 @@ import { left, right} from 'fp-ts/Either';
 import type { TeamMemberModel } from '$lib/types/team.member.model';
 import type { ChannelModel } from '$lib/types/channel.model';
 
+const handle_error = (err) =>
+    console.error(err);
+
 const parse_error = (error: undefined): ApiErrorModel =>
 	JSON.parse(`${error}`);
 
@@ -60,6 +63,6 @@ export const add_server = async (name: string, url: string): Promise<ServerModel
 
 export const login = async (login_id: string, password: string): Promise<Either<ApiErrorModel, UserModel>> =>
 	invoke('login', { login: login_id, password })
-		.then((user) => right(user as UserModel))
-		.catch((error) => left(parse_error(error)));
+		.then((user) => { console.info(user); return right(user as UserModel); })
+		.catch((error) => { console.error(error); return left(parse_error(error)); });
 

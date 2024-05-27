@@ -1,36 +1,12 @@
-[package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
-default-run = "app"
-edition = "2021"
-rust-version = "1.60"
+[workspace]
+members = [
+    "app",
+    "models",
+    "zbox",
+]
+default-members = ["app"]
+resolver = "2"
 
-[build-dependencies]
-tauri-build = { version = "1.5.1", features = [] }
-
-[dependencies]
-serde_json = "1"
-serde = { version = "1", features = ["derive"] }
-tauri = { version = "1", features = [] }
-reqwest = { version = "0", features = ["json"] }
-tokio = { version = "1", features = ["full"] }
-futures = "0"
-thiserror = "1"
-url = { version = "2", features = ["serde"] }
-tracing = "0"
-tracing-subscriber = { version = "0", features = ["tracing", "serde", "chrono", "json"] }
-nutype = { version = "0", features = ["serde"] }
-directories = "5"
-zbox = { path = "./vendor/zbox", default-features = false, features = ["storage-file", "libsodium-bundled"] }
-rand = { version = "0" }
-bincode = "1"
-
-[dev-dependencies]
-tempdir = "0.3.7"
-
-[features]
-custom-protocol = [ "tauri/custom-protocol" ]
+[workspace.dependencies]
+models = { path = "./models" }
+zbox = { path = "./zbox" }

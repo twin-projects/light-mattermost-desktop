@@ -1,0 +1,17 @@
+[package]
+name = "models"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.60"
+
+[dependencies]
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+tracing = "0"
+nutype = { version = "0", features = ["serde"] }
+url = { version = "2", features = ["serde"] }

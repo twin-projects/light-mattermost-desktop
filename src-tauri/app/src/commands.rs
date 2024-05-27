@@ -16,23 +16,33 @@ pub async fn login(
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
 ) -> Result<UserDetails, Error> {
-    tracing::info!("{}", "User login ".to_string());
-    let mut user_state = user_state_mutex.lock().await;
-    let server_state = server_state_mutex.lock().await;
-    let current_url = server_state.current.as_ref().unwrap();
+    tracing::info!("User login");
+    let url = {
+        server_state_mutex
+            .lock()
+            .await
+            .current
+            .as_ref()
+            .unwrap()
+            .url
+            .clone()
+    };
+    tracing::debug!("current url: {url:?}");
     let result = handle_request(
         &http_client,
-        &current_url.url,
+        &url,
         &ApiEvent::LoginEvent(login, password),
         None,
     )
-    .await?;
-    tracing::info!("result: {}", &result);
-    let Response::LoginResponse(token, _id, username) = result else {
+    .await;
+    tracing::info!("result: {:?}", result);
+    let Response::LoginResponse(token, _id, username) = result? else {
         return Err(NativeError::UnexpectedResponse)?;
     };
     tracing::info!("Authorized");
-    user_state.token = Some(token.to_owned());
+    {
+        user_state_mutex.lock().await.token = Some(token.to_owned());
+    }
     Ok(UserDetails {
         username: username.to_owned(),
     })
@@ -44,20 +54,20 @@ pub async fn my_teams(
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
 ) -> Result<Vec<Team>, Error> {
-    let mut user_state = user_state_mutex.lock().await;
-    let token_option = user_state.token.as_ref();
+    let token_option = { user_state_mutex.lock().await.token.as_ref().cloned() };
     let server_state = server_state_mutex.lock().await;
     let current_url = server_state.current.as_ref().unwrap();
     let result = handle_request(
         &http_client,
         &current_url.url,
         &ApiEvent::MyTeams,
-        token_option,
+        token_option.as_ref(),
     )
     .await?;
     let Response::MyTeams(teams) = result else {
         return Err(NativeError::UnexpectedResponse)?;
     };
+    let mut user_state = user_state_mutex.lock().await;
     user_state.teams = Some(teams.to_owned());
     Ok(teams.to_owned())
 }
@@ -68,20 +78,20 @@ pub async fn my_team_members(
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
 ) -> Result<Vec<TeamMember>, Error> {
-    let mut user_state = user_state_mutex.lock().await;
-    let token_option = user_state.token.as_ref();
+    let token_option = { user_state_mutex.lock().await.token.as_ref().cloned() };
     let server_state = server_state_mutex.lock().await;
     let current_url = server_state.current.as_ref().unwrap();
     let result = handle_request(
         &http_client,
         &current_url.url,
         &ApiEvent::MyTeamMembers,
-        token_option,
+        token_option.as_ref(),
     )
     .await?;
     let Response::MyTeamMembers(team_members) = result else {
         return Err(NativeError::UnexpectedResponse)?;
     };
+    let mut user_state = user_state_mutex.lock().await;
     user_state.team_members = Some(team_members.to_owned());
     Ok(team_members.to_owned())
 }
@@ -92,20 +102,20 @@ pub async fn my_channels(
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
 ) -> Result<Vec<Channel>, Error> {
-    let mut user_state = user_state_mutex.lock().await;
-    let token_option = user_state.token.as_ref();
+    let token_option = { user_state_mutex.lock().await.token.as_ref().cloned() };
     let server_state = server_state_mutex.lock().await;
     let current_url = server_state.current.as_ref().unwrap();
     let result = handle_request(
         &http_client,
         &current_url.url,
         &ApiEvent::MyChannels,
-        token_option,
+        token_option.as_ref(),
     )
     .await?;
     let Response::MyChannels(channels) = result else {
         return Err(NativeError::UnexpectedResponse)?;
     };
+    let mut user_state = user_state_mutex.lock().await;
     user_state.channels = Some(channels.to_owned());
     Ok(channels.to_owned())
 }

@@ -1,7 +1,7 @@
 use nutype::nutype;
 use url::Url;
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From,))]
+#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct ServerUrl(Url);
 
 impl ServerUrl {

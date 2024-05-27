@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { getToastStore, initializeStores, Toast } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
-	import { servers, state, addServer } from '$lib/store';
+	import { state, addServer } from '$lib/store';
 
 	initializeStores();
 
@@ -19,8 +19,6 @@
 		ev.stopPropagation();
 		goto('/login');
 	};
-
-	console.info(servers);
 </script>
 
 <div class="card p-4 flex gap-4 flex-col">

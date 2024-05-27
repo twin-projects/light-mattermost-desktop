@@ -37,8 +37,6 @@ export interface PageData {
 	servers: ServerModel[];
 }
 
-export const servers: Writable<ServerModel[]> = writable([]);
-
 export const defaultState = {
 	currentServer: {
 		url: '',
@@ -79,7 +77,6 @@ export const initNavigation = async () => {
 	await get_all_servers().then((be_servers) => {
 		if (be_servers) {
 			pageState.servers = be_servers;
-			servers.update(() => be_servers);
 		}
 	});
 	await get_current_server().then((current) => {
