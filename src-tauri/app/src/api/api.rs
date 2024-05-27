@@ -1,3 +1,4 @@
+use models::AccessToken;
 use reqwest::header::HeaderMap;
 use reqwest::{Client, Method};
 use serde::Serialize;
@@ -137,6 +138,19 @@ async fn my_team_members(
 }
 
 async fn my_channels(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
+    tracing::info!("Get my channels: {}", uri);
+    let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
+    if response.status().is_success() {
+        let channels: Vec<Channel> = response.json::<Vec<Channel>>().await.unwrap();
+        tracing::trace!("Received my channels: {:?}", channels);
+        Ok(Response::MyChannels(channels))
+    } else {
+        tracing::error!("Failed to get my channels!");
+        Err(NativeError::FetchChannels)?
+    }
+}
+
+async fn fetch_thread(client: &Client, token: AccessToken) -> Result<Response, Error> {
     tracing::info!("Get my channels: {}", uri);
     let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
     if response.status().is_success() {
