@@ -4,18 +4,21 @@
 import type { UserModel } from './types/login.model';
 import type { TeamModel } from './types/team.model';
 import type { ServerModel } from './types/server.model';
+import type { TeamMemberModel } from '$lib/types/team.member.model';
 
 declare namespace App {
 	// interface Locals {}
 	interface PageData {
 		currentServer: ServerModel | null;
-		user: UserModel | null;
-		teams: TeamModel[];
+		user?: UserModel | null;
+		teams?: TeamModel[];
+		teamMembers?: TeamMemberModel[];
 	}
 	interface PageState {
 		currentServer: ServerModel | null;
-		user: UserModel | null;
-		teams: TeamModel[];
+		user?: UserModel | null;
+		teams?: TeamModel[];
+		teamMembers?: TeamMemberModel[];
 	}
 
 	// interface Error {}

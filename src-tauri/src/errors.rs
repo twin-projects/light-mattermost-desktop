@@ -20,6 +20,10 @@ pub enum NativeError {
     UnexpectedResponse,
     #[error("Unable to fetch teams from mattermost server")]
     FetchTeams,
+    #[error("Unable to fetch team members from mattermost server")]
+    FetchTeamMembers,
+    #[error("Unable to fetch channels from mattermost server")]
+    FetchChannels,
     #[error("Unable to perform login, mattermost server return an error")]
     PerformLogin,
     #[error("Unknown server")]

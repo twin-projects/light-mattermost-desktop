@@ -1,7 +1,13 @@
 import { defaultState, type PageState, servers, state } from '$lib/store';
-import { get_all_servers, get_my_teams, get_current_server } from '$lib/controllers';
+import {
+	get_all_servers,
+	get_my_teams,
+	get_current_server,
+	get_my_team_members,
+	get_my_channels
+} from '$lib/controllers';
 
-export const prerender = true;
+export const prerender = false;
 export const ssr = false;
 
 export const load = async () => {
@@ -14,6 +20,16 @@ export const load = async () => {
 		await get_my_teams().then((teams) => {
 			state.update((value) => ({ ...value, teams: teams ?? [] }));
 			pageState.teams = teams ?? [];
+		});
+		await get_my_team_members().then((teamMembers) => {
+			state.update((value) => ({ ...value, teamMembers: teamMembers ?? [] }));
+			console.log('my_team_members', teamMembers);
+			pageState.teamMembers = teamMembers ?? [];
+		});
+		await get_my_channels().then((channels) => {
+			state.update((value) => ({ ...value, channels: channels ?? [] }));
+			console.log('my_channels', channels);
+			pageState.channels = channels ?? [];
 		});
 	}
 	await get_all_servers().then((be_servers) => {

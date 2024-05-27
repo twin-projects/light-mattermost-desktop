@@ -1,7 +1,7 @@
 use serde::Serialize;
 use url::Url;
 
-use crate::api::call_event::{Team, UserDetails};
+use crate::api::call_event::{Channel, Team, TeamMember, UserDetails};
 
 #[derive(Serialize, Clone)]
 pub(crate) struct UserState {
@@ -9,6 +9,8 @@ pub(crate) struct UserState {
     pub(crate) token: Option<String>,
     pub(crate) user_details: Option<UserDetails>,
     pub(crate) teams: Option<Vec<Team>>,
+    pub(crate) team_members: Option<Vec<TeamMember>>,
+    pub(crate) channels: Option<Vec<Channel>>,
 }
 
 impl Default for UserState {
@@ -17,6 +19,8 @@ impl Default for UserState {
             token: None,
             user_details: None,
             teams: None,
+            team_members: None,
+            channels: None
         }
     }
 }

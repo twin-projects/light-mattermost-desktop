@@ -5,6 +5,8 @@ import type { Either } from 'fp-ts/Either';
 import type { ApiErrorModel } from '$lib/types/api.error.model';
 import { invoke } from '@tauri-apps/api/tauri';
 import { left, right} from 'fp-ts/Either';
+import type { TeamMemberModel } from '$lib/types/team.member.model';
+import type { ChannelModel } from '$lib/types/channel.model';
 
 const parse_error = (error: undefined): ApiErrorModel =>
 	JSON.parse(`${error}`);
@@ -37,6 +39,16 @@ export const get_my_teams = async () =>
 	invoke('my_teams')
 		.then((myTeams) => myTeams as TeamModel[])
 		.catch(() => null);
+
+export const get_my_team_members = async () =>
+	invoke('my_team_members')
+		.then((myTeamMembers) => myTeamMembers as TeamMemberModel[])
+		.catch(handle_error);
+
+export const get_my_channels = async () =>
+	invoke('my_channels')
+		.then((channels) => channels as ChannelModel[])
+		.catch(handle_error);
 
 export const add_server = async (name: string, url: string): Promise<ServerModel | null> =>
 	invoke('add_server', { name, url })
