@@ -1,4 +1,4 @@
-use models::AccessToken;
+use models::{AccessToken, Thread};
 use reqwest::header::HeaderMap;
 use reqwest::{Client, Method};
 use serde::Serialize;
@@ -12,33 +12,17 @@ pub async fn handle_request(
     client: &Client,
     server_url: &Url,
     event: &ApiEvent,
-    token: Option<&String>,
+    token: Option<&AccessToken>,
 ) -> Result<Response, Error> {
     let server_url = server_url.join("api/v4/").unwrap();
     match event {
         ApiEvent::LoginEvent(login_id, password) => {
-            login(
-                client,
-                server_url.join("users/login").unwrap(),
-                &login_id,
-                &password,
-            )
-            .await
+            login(client, server_url, &login_id, &password).await
         }
-        ApiEvent::MyTeams => {
-            my_teams(client, server_url.join("users/me/teams").unwrap(), token).await
-        }
-        ApiEvent::MyTeamMembers => {
-            my_team_members(
-                client,
-                server_url.join("users/me/teams/members").unwrap(),
-                token,
-            )
-            .await
-        }
-        ApiEvent::MyChannels => {
-            my_channels(client, server_url.join("users/me/channels").unwrap(), token).await
-        }
+        ApiEvent::MyTeams => my_teams(client, server_url, token).await,
+        ApiEvent::MyTeamMembers => my_team_members(client, server_url, token).await,
+        ApiEvent::MyChannels => my_channels(client, server_url, token).await,
+        ApiEvent::ChannelThreads => fetch_threads(client, uri, token).await,
     }
 }
 
@@ -47,7 +31,7 @@ async fn handle<T: Serialize>(
     method: Method,
     url: Url,
     payload: Option<T>,
-    token: Option<&String>,
+    token: Option<&AccessToken>,
 ) -> reqwest::Response {
     let mut builder = client.request(method, url);
     builder = match payload {
@@ -55,7 +39,7 @@ async fn handle<T: Serialize>(
         _ => builder,
     };
     builder = match token {
-        Some(bearer_token) => builder.bearer_auth(bearer_token),
+        Some(bearer_token) => builder.bearer_auth(bearer_token.as_str()),
         _ => builder,
     };
     builder.send().await.unwrap()
@@ -72,15 +56,26 @@ async fn login(
         login_id: login.to_string(),
         password: password.to_string(),
     };
-    let response = handle(client, Method::POST, uri, Some(login_request), None).await;
+    let response = handle(
+        client,
+        Method::POST,
+        uri.join("users/login").unwrap(),
+        Some(login_request),
+        None,
+    )
+    .await;
     if !response.status().is_success() {
         tracing::error!("Failed to perform Login body: {:?}", &response.status());
         return match &response.json::<ServerApiError>().await {
             Ok(e) => Err(ApiError(e.to_owned()))?,
-            _ => Err(NativeError::PerformLogin)?,
+            Err(e) => {
+                tracing::warn!("Failed to perform login: {e}");
+                Err(NativeError::PerformLogin)?
+            }
         };
     }
-    let token = get_token(&response.headers()).to_owned();
+    let token =
+        AccessToken::new(get_token(&response.headers()).to_owned()).expect("Invalid access token");
     let user_response = &response.json::<UserResponse>().await;
     tracing::debug!("user response: {user_response:?}");
     match user_response {
@@ -107,9 +102,20 @@ fn get_token(headers: &HeaderMap) -> &str {
         .unwrap_or_default()
 }
 
-async fn my_teams(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
+async fn my_teams(
+    client: &Client,
+    uri: Url,
+    token: Option<&AccessToken>,
+) -> Result<Response, Error> {
     tracing::info!("Get my teams: {}", uri);
-    let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
+    let response = handle(
+        client,
+        Method::GET,
+        uri.join("users/me/teams").unwrap(),
+        None as Option<()>,
+        token,
+    )
+    .await;
     if response.status().is_success() {
         let teams: Vec<Team> = response.json::<Vec<Team>>().await.unwrap();
         tracing::trace!("Received my teams: {:?}", teams);
@@ -123,10 +129,17 @@ async fn my_teams(client: &Client, uri: Url, token: Option<&String>) -> Result<R
 async fn my_team_members(
     client: &Client,
     uri: Url,
-    token: Option<&String>,
+    token: Option<&AccessToken>,
 ) -> Result<Response, Error> {
     tracing::info!("Get my team members: {}", uri);
-    let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
+    let response = handle(
+        client,
+        Method::GET,
+        uri.join("users/me/teams/members").unwrap(),
+        None as Option<()>,
+        token,
+    )
+    .await;
     if response.status().is_success() {
         let team_members: Vec<TeamMember> = response.json::<Vec<TeamMember>>().await.unwrap();
         tracing::trace!("Received my team members: {:?}", team_members);
@@ -137,9 +150,20 @@ async fn my_team_members(
     }
 }
 
-async fn my_channels(client: &Client, uri: Url, token: Option<&String>) -> Result<Response, Error> {
+async fn my_channels(
+    client: &Client,
+    uri: Url,
+    token: Option<&AccessToken>,
+) -> Result<Response, Error> {
     tracing::info!("Get my channels: {}", uri);
-    let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
+    let response = handle(
+        client,
+        Method::GET,
+        uri.join("users/me/channels").unwrap(),
+        None as Option<()>,
+        token,
+    )
+    .await;
     if response.status().is_success() {
         let channels: Vec<Channel> = response.json::<Vec<Channel>>().await.unwrap();
         tracing::trace!("Received my channels: {:?}", channels);
@@ -150,13 +174,23 @@ async fn my_channels(client: &Client, uri: Url, token: Option<&String>) -> Resul
     }
 }
 
-async fn fetch_thread(client: &Client, token: AccessToken) -> Result<Response, Error> {
-    tracing::info!("Get my channels: {}", uri);
-    let response = handle(client, Method::GET, uri, None as Option<()>, token).await;
+async fn fetch_threads(
+    client: &Client,
+    uri: Url,
+    token: Option<&AccessToken>,
+) -> Result<Response, Error> {
+    let response = handle(
+        client,
+        Method::GET,
+        uri.join("api/v4/posts/{post_id}/thread").unwrap(),
+        None as Option<()>,
+        token,
+    )
+    .await;
     if response.status().is_success() {
-        let channels: Vec<Channel> = response.json::<Vec<Channel>>().await.unwrap();
-        tracing::trace!("Received my channels: {:?}", channels);
-        Ok(Response::MyChannels(channels))
+        let threads: Vec<Thread> = response.json().await.unwrap();
+        tracing::trace!("Received threads: {:?}", threads);
+        Ok(Response::ChannelThreads(threads))
     } else {
         tracing::error!("Failed to get my channels!");
         Err(NativeError::FetchChannels)?

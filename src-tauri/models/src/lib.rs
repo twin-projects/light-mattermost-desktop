@@ -27,7 +27,7 @@ pub struct Pass(String);
 /// Non-empty, no-white character access token used to communicate with
 /// MatterMost server
 #[nutype(
-    derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, TryFrom),
+    derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, TryFrom),
     sanitize(trim),
     validate(not_empty)
 )]
@@ -62,6 +62,9 @@ pub struct Message(String);
 
 #[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct ChannelId(String);
+
+#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct TeamId(String);
 
 #[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct UserId(String);
@@ -187,7 +190,7 @@ pub struct Post {
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct Thead {
+pub struct Thread {
     pub order: Vec<PostId>,
     pub posts: Vec<Post>,
     pub next_post_id: Option<PostId>,
