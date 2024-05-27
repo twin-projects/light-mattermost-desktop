@@ -11,7 +11,6 @@ use crate::states::{ServerState, UserState};
 mod api;
 mod commands;
 pub mod errors;
-pub mod models;
 mod states;
 pub mod storage;
 

@@ -1,10 +1,9 @@
-use std::{
-    path::PathBuf,
-    sync::{Arc, Mutex},
-};
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
+use models::*;
 use zbox::{init_env, Repo, RepoOpener};
-use crate::models::*;
+
 use crate::errors::StorageError;
 
 pub struct Inner {
@@ -12,8 +11,8 @@ pub struct Inner {
     vault: Repo,
 }
 
-/// ZBox file system mounted to directry. Entire FS journal is stored inside application config
-/// directory and is accessible through native API.
+/// ZBox file system mounted to directry. Entire FS journal is stored inside
+/// application config directory and is accessible through native API.
 ///
 /// All stored data are encrypted using libsodium.
 #[derive(Clone)]
@@ -22,11 +21,11 @@ pub struct Storage(Arc<Mutex<Inner>>);
 impl Storage {
     /// Open zbox file system repository
     ///
-    /// This method will panic and kill entire application if anything goes wrong and it must do so
-    /// since FS access is required for application.
+    /// This method will panic and kill entire application if anything goes
+    /// wrong and it must do so since FS access is required for application.
     ///
-    /// Repository remains open through application lifetime but stored values are accessible only
-    /// when read methods are called
+    /// Repository remains open through application lifetime but stored values
+    /// are accessible only when read methods are called
     ///
     /// # Examples
     ///
@@ -103,8 +102,9 @@ impl Storage {
 
     /// Store all credentials in encrypted safe zbox storage
     ///
-    /// Be aware this is IO & crypto operation so it will requires considerable processing power.
-    /// To prevent chocking tokio runtime you must use `spawn_blocking` or `spawn_local`.
+    /// Be aware this is IO & crypto operation so it will requires considerable
+    /// processing power. To prevent chocking tokio runtime you must use
+    /// `spawn_blocking` or `spawn_local`.
     ///
     /// # Examples
     ///
@@ -135,9 +135,10 @@ impl Storage {
 
 #[cfg(test)]
 mod check {
-    use super::*;
     use tempdir::TempDir;
     use url::Url;
+
+    use super::*;
 
     #[test]
     fn rwr() {
