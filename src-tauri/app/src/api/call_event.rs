@@ -1,6 +1,7 @@
 use std::fmt;
 use std::fmt::Debug;
 
+use models::*;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -10,14 +11,15 @@ pub enum ApiEvent {
     MyTeams,
     MyTeamMembers,
     MyChannels,
+    ChannelThreads,
 }
 
 #[derive(Debug)]
 pub enum Response {
     LoginResponse(
-        String, // token
-        String, // user_id
-        String, // user name
+        AccessToken, // token
+        String,      // user_id
+        String,      // user name
     ),
     MyTeams(
         Vec<Team>, // teams
@@ -28,6 +30,7 @@ pub enum Response {
     MyChannels(
         Vec<Channel>, // team members
     ),
+    ChannelThreads(Vec<Thread>),
 }
 
 impl fmt::Display for Response {
@@ -76,7 +79,7 @@ pub struct UserDetails {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Team {
-    pub id: Option<String>,
+    pub id: Option<TeamId>,
     pub display_name: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -89,7 +92,7 @@ pub struct TeamMember {
     pub team_id: String,
     pub user_id: String,
     pub roles: String,
-    pub delete_at: i64,
+    pub delete_at: Timestamp,
     pub scheme_guest: bool,
     pub scheme_user: bool,
     pub scheme_admin: bool,
@@ -98,10 +101,10 @@ pub struct TeamMember {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Channel {
-    pub id: Option<String>,
-    pub create_at: i64,
-    pub update_at: i64,
-    pub delete_at: i64,
+    pub id: Option<ChannelId>,
+    pub create_at: Timestamp,
+    pub update_at: Timestamp,
+    pub delete_at: Timestamp,
     pub team_id: Option<String>,
     #[serde(rename = "type")]
     pub r#type: Option<String>,
@@ -109,20 +112,20 @@ pub struct Channel {
     pub name: Option<String>,
     pub header: Option<String>,
     pub purpose: Option<String>,
-    pub last_post_at: i64,
+    pub last_post_at: Timestamp,
     pub total_msg_count: i64,
-    pub extra_update_at: i64,
+    pub extra_update_at: Timestamp,
     pub creator_id: Option<String>,
     pub scheme_id: Option<String>,
     pub props: Option<NotifyProps>,
     pub group_constrained: Option<bool>,
     pub total_msg_count_root: Option<i64>,
-    pub last_root_post_at: Option<i64>,
+    pub last_root_post_at: Option<Timestamp>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct User {
-    user_id: String,
+    user_id: UserId,
     roles: String,
     last_viewed_at: i16,
     msg_count: i16,
