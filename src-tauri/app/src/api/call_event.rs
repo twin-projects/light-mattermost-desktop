@@ -11,7 +11,7 @@ pub enum ApiEvent {
     MyTeams,
     MyTeamMembers,
     MyChannels,
-    ChannelThreads,
+    PostThreads(PostId),
 }
 
 #[derive(Debug)]

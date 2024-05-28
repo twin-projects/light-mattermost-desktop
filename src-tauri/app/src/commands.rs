@@ -1,3 +1,4 @@
+use models::{PostId, Thread};
 use reqwest::Client;
 use tauri::State;
 use tokio::sync::Mutex;
@@ -203,4 +204,33 @@ pub async fn get_all_servers(
     let servers = state.servers.to_owned();
     tracing::debug!("all servers: {:?}", servers);
     Ok(servers)
+}
+
+#[tauri::command]
+pub async fn post_threads(
+    post_id: PostId,
+    user_state_mutex: State<'_, Mutex<UserState>>,
+    server_state_mutex: State<'_, Mutex<ServerState>>,
+    http_client: State<'_, Client>,
+) -> Result<Vec<Thread>, Error> {
+    let state = server_state_mutex.lock().await;
+    let token = user_state_mutex.lock().await.token.clone();
+    let client = &*http_client;
+    let server_url = state
+        .current
+        .as_ref()
+        .ok_or_else(|| NativeError::ServerNotSelected)?
+        .url
+        .to_owned();
+    let v = handle_request(
+        client,
+        &server_url,
+        &ApiEvent::PostThreads(post_id),
+        token.as_ref(),
+    )
+    .await?;
+    let Response::ChannelThreads(v) = v else {
+        return Err(Error::Native(NativeError::UnexpectedResponse));
+    };
+    Ok(v)
 }

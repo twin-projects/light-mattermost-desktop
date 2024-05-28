@@ -27,7 +27,16 @@ pub struct Pass(String);
 /// Non-empty, no-white character access token used to communicate with
 /// MatterMost server
 #[nutype(
-    derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, TryFrom),
+    derive(
+        Debug,
+        Display,
+        Clone,
+        PartialEq,
+        Serialize,
+        Deserialize,
+        Deref,
+        TryFrom
+    ),
     sanitize(trim),
     validate(not_empty)
 )]
@@ -48,58 +57,82 @@ pub struct ServerCredentials {
 pub type Timestamp = u64;
 pub type FileDimension = usize;
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct HashTag(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct PostType(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct EmbedType(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct Message(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct ChannelId(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct TeamId(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct UserId(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct PostId(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct FileId(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct EmojiName(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct EmojiId(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct EmbedUrl(Url);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct FileName(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct FileExt(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct MimeType(String);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct ChannelPurpose(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct ChannelType(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct ChannelHeader(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct ChannelName(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct ChannelDisplayName(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct TeamName(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct TeamDisplayName(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct PolicyId(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct FileWidth(FileDimension);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct FileHeight(FileDimension);
 
-#[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct FileSize(FileDimension);
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -155,7 +188,7 @@ pub struct MetaPriority {
 pub struct MetaAcknowledgement {
     pub user_id: UserId,
     pub post_id: PostId,
-    pub acknowledged_at: Timestamp
+    pub acknowledged_at: Timestamp,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -190,10 +223,38 @@ pub struct Post {
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct Thread {
+pub struct ThreadPosts {
     pub order: Vec<PostId>,
     pub posts: Vec<Post>,
     pub next_post_id: Option<PostId>,
     pub prev_post_id: Option<PostId>,
     pub has_next: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ChannelPosts {
+    pub order: Vec<PostId>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Channel {
+    pub id: ChannelId,
+    pub update_at: Timestamp,
+    pub delete_at: Timestamp,
+    pub create_at: Timestamp,
+    pub team_id: TeamId,
+    #[serde(rename = "type")]
+    pub channel_type: ChannelType,
+    pub display_name: ChannelDisplayName,
+    pub name: ChannelName,
+    pub header: ChannelHeader,
+    pub purpose: ChannelPurpose,
+    pub last_post_at: Timestamp,
+    pub total_msg_count: Timestamp,
+    pub extra_update_at: Timestamp,
+    pub creator_id: UserId,
+    pub team_display_name: TeamDisplayName,
+    pub team_name: TeamName,
+    pub team_update_at: Timestamp,
+    pub policy_id: PolicyId,
 }

@@ -1,4 +1,4 @@
-use models::{AccessToken, Thread};
+use models::{AccessToken, ChannelId, PostId, Thread};
 use reqwest::header::HeaderMap;
 use reqwest::{Client, Method};
 use serde::Serialize;
@@ -22,7 +22,9 @@ pub async fn handle_request(
         ApiEvent::MyTeams => my_teams(client, server_url, token).await,
         ApiEvent::MyTeamMembers => my_team_members(client, server_url, token).await,
         ApiEvent::MyChannels => my_channels(client, server_url, token).await,
-        ApiEvent::ChannelThreads => fetch_threads(client, uri, token).await,
+        ApiEvent::PostThreads(post_id) => {
+            fetch_post_threads(client, server_url, token, post_id).await
+        }
     }
 }
 
@@ -174,15 +176,41 @@ async fn my_channels(
     }
 }
 
-async fn fetch_threads(
+async fn fetch_channel_posts(
     client: &Client,
     uri: Url,
     token: Option<&AccessToken>,
-) -> Result<Response, Error> {
+    channel_id: &ChannelId,
+) -> Result<ChannelPayload, Error> {
     let response = handle(
         client,
         Method::GET,
-        uri.join("api/v4/posts/{post_id}/thread").unwrap(),
+        uri.join(&format!("api/v4/channels/{channel_id}/posts"))
+            .unwrap(),
+        None as Option<()>,
+        token,
+    )
+    .await;
+    if response.status().is_success() {
+        let threads: Post = response.json().await.unwrap();
+        tracing::trace!("Received threads: {:?}", threads);
+        Ok(Response::ChannelThreads(threads))
+    } else {
+        tracing::error!("Failed to get my channels!");
+        Err(NativeError::FetchChannels)?
+    }
+}
+
+async fn fetch_post_threads(
+    client: &Client,
+    uri: Url,
+    token: Option<&AccessToken>,
+    post_id: &PostId,
+) -> Result<PostPayload, Error> {
+    let response = handle(
+        client,
+        Method::GET,
+        uri.join(&format!("api/v4/posts/{post_id}/thread")).unwrap(),
         None as Option<()>,
         token,
     )
