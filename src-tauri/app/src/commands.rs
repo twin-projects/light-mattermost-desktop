@@ -1,10 +1,10 @@
-use models::{PostId, Thread};
+use models::*;
 use reqwest::Client;
 use tauri::State;
 use tokio::sync::Mutex;
 use url::Url;
 
-use crate::api::call_event::{ApiEvent, Channel, Response, Team, TeamMember, UserDetails};
+use crate::api::call_event::*;
 use crate::api::handle_request;
 use crate::errors::{Error, NativeError};
 use crate::states::{Server, ServerState, UserState};
@@ -37,7 +37,12 @@ pub async fn login(
     )
     .await;
     tracing::info!("result: {:?}", result);
-    let Response::LoginResponse(token, _id, username) = result? else {
+    let Response::LoginResponse {
+        token,
+        user_id: _id,
+        user_name,
+    } = result?
+    else {
         return Err(NativeError::UnexpectedResponse)?;
     };
     tracing::info!("Authorized");
@@ -45,7 +50,7 @@ pub async fn login(
         user_state_mutex.lock().await.token = Some(token.to_owned());
     }
     Ok(UserDetails {
-        username: username.to_owned(),
+        username: user_name.to_owned(),
     })
 }
 
@@ -212,7 +217,7 @@ pub async fn post_threads(
     user_state_mutex: State<'_, Mutex<UserState>>,
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
-) -> Result<Vec<Thread>, Error> {
+) -> Result<PostThread, Error> {
     let state = server_state_mutex.lock().await;
     let token = user_state_mutex.lock().await.token.clone();
     let client = &*http_client;
@@ -230,6 +235,35 @@ pub async fn post_threads(
     )
     .await?;
     let Response::ChannelThreads(v) = v else {
+        return Err(Error::Native(NativeError::UnexpectedResponse));
+    };
+    Ok(v)
+}
+
+#[tauri::command]
+pub async fn channel_posts(
+    channel_id: ChannelId,
+    user_state_mutex: State<'_, Mutex<UserState>>,
+    server_state_mutex: State<'_, Mutex<ServerState>>,
+    http_client: State<'_, Client>,
+) -> Result<PostThread, Error> {
+    let state = server_state_mutex.lock().await;
+    let token = user_state_mutex.lock().await.token.clone();
+    let client = &*http_client;
+    let server_url = state
+        .current
+        .as_ref()
+        .ok_or_else(|| NativeError::ServerNotSelected)?
+        .url
+        .to_owned();
+    let v = handle_request(
+        client,
+        &server_url,
+        &ApiEvent::ChannelPosts(channel_id),
+        token.as_ref(),
+    )
+    .await?;
+    let Response::ChannelPosts(v) = v else {
         return Err(Error::Native(NativeError::UnexpectedResponse));
     };
     Ok(v)

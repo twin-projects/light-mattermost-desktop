@@ -1,8 +1,6 @@
-use models::AccessToken;
+use models::{AccessToken, *};
 use serde::Serialize;
 use url::Url;
-
-use crate::api::call_event::{Channel, Team, TeamMember, UserDetails};
 
 #[derive(Serialize, Clone, Default)]
 pub(crate) struct UserState {

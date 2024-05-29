@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::api::call_event::ServerApiError;
+use models::*;
 
 #[derive(thiserror::Error, Debug)]
 pub enum StorageError {
@@ -24,6 +24,8 @@ pub enum NativeError {
     FetchTeamMembers,
     #[error("Unable to fetch channels from mattermost server")]
     FetchChannels,
+    #[error("Unable to fetch posts from mattermost server")]
+    FetchPosts,
     #[error("Unable to perform login, mattermost server return an error")]
     PerformLogin,
     #[error("Unknown server")]

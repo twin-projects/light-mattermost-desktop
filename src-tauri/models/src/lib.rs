@@ -1,4 +1,5 @@
 use nutype::nutype;
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 #[nutype(derive(Debug, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
@@ -223,7 +224,7 @@ pub struct Post {
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct ThreadPosts {
+pub struct PostThread {
     pub order: Vec<PostId>,
     pub posts: Vec<Post>,
     pub next_post_id: Option<PostId>,
@@ -236,25 +237,128 @@ pub struct ChannelPosts {
     pub order: Vec<PostId>,
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Channel {
-    pub id: ChannelId,
+    pub id: Option<ChannelId>,
+    pub create_at: Timestamp,
     pub update_at: Timestamp,
     pub delete_at: Timestamp,
-    pub create_at: Timestamp,
-    pub team_id: TeamId,
+    pub team_id: Option<String>,
     #[serde(rename = "type")]
-    pub channel_type: ChannelType,
-    pub display_name: ChannelDisplayName,
-    pub name: ChannelName,
-    pub header: ChannelHeader,
-    pub purpose: ChannelPurpose,
+    pub r#type: Option<String>,
+    pub display_name: Option<String>,
+    pub name: Option<String>,
+    pub header: Option<String>,
+    pub purpose: Option<String>,
     pub last_post_at: Timestamp,
-    pub total_msg_count: Timestamp,
+    pub total_msg_count: i64,
     pub extra_update_at: Timestamp,
-    pub creator_id: UserId,
-    pub team_display_name: TeamDisplayName,
-    pub team_name: TeamName,
-    pub team_update_at: Timestamp,
-    pub policy_id: PolicyId,
+    pub creator_id: Option<String>,
+    pub scheme_id: Option<String>,
+    pub props: Option<NotifyProps>,
+    pub group_constrained: Option<bool>,
+    pub total_msg_count_root: Option<i64>,
+    pub last_root_post_at: Option<Timestamp>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoginRequest {
+    pub login_id: String,
+    pub password: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Timezone {
+    #[serde(rename(serialize = "automaticTimezone", deserialize = "automaticTimezone"))]
+    pub automatic_timezone: String,
+    #[serde(rename(serialize = "manualTimezone", deserialize = "manualTimezone"))]
+    pub manual_timezone: String,
+    #[serde(rename(
+        serialize = "useAutomaticTimezone",
+        deserialize = "useAutomaticTimezone"
+    ))]
+    pub use_automatic_timezone: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserResponse {
+    pub id: String,
+    pub username: String,
+    pub auth_data: String,
+    pub auth_service: String,
+    pub email: String,
+    pub nickname: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub position: String,
+    pub roles: String,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct UserDetails {
+    pub username: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct Team {
+    pub id: Option<TeamId>,
+    pub display_name: Option<String>,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub email: Option<String>,
+    pub company_name: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct TeamMember {
+    pub team_id: String,
+    pub user_id: String,
+    pub roles: String,
+    pub delete_at: Timestamp,
+    pub scheme_guest: bool,
+    pub scheme_user: bool,
+    pub scheme_admin: bool,
+    pub explicit_roles: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct User {
+    user_id: UserId,
+    roles: String,
+    last_viewed_at: i16,
+    msg_count: i16,
+    mention_count: i16,
+    mention_count_root: i16,
+    urgent_mention_count: i16,
+    msg_count_root: i16,
+    notify_props: NotifyProps,
+    last_update_at: i16,
+    scheme_guest: bool,
+    scheme_user: bool,
+    scheme_admin: bool,
+    explicit_roles: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct NotifyProps {
+    channel_auto_follow_threads: Option<String>,
+    desktop: Option<String>,
+    email: Option<String>,
+    ignore_channel_mentions: Option<String>,
+    mark_unread: Option<String>,
+    push: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, thiserror::Error)]
+pub struct ServerApiError {
+    pub id: String,
+    pub message: String,
+    pub request_id: String,
+    pub status_code: i16,
+}
+
+impl std::fmt::Display for ServerApiError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str(&serde_json::to_string(self).unwrap())
+    }
 }
