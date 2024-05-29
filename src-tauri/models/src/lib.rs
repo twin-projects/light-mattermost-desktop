@@ -42,6 +42,21 @@ pub struct Pass(String);
     validate(not_empty)
 )]
 pub struct AccessToken(String);
+#[nutype(
+    derive(
+        Debug,
+        Display,
+        Clone,
+        PartialEq,
+        Serialize,
+        Deserialize,
+        Deref,
+        TryFrom
+    ),
+    sanitize(trim),
+    validate(not_empty)
+)]
+pub struct Email(String);
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Credentials {
@@ -125,7 +140,16 @@ pub struct TeamName(String);
 pub struct TeamDisplayName(String);
 
 #[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct TeamDescription(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct PolicyId(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct SchemaId(String);
+
+#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+pub struct CompanyName(String);
 
 #[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct FileWidth(FileDimension);
@@ -232,11 +256,6 @@ pub struct PostThread {
     pub has_next: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct ChannelPosts {
-    pub order: Vec<PostId>,
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Channel {
     pub id: Option<ChannelId>,
@@ -245,16 +264,16 @@ pub struct Channel {
     pub delete_at: Timestamp,
     pub team_id: Option<String>,
     #[serde(rename = "type")]
-    pub r#type: Option<String>,
-    pub display_name: Option<String>,
-    pub name: Option<String>,
-    pub header: Option<String>,
-    pub purpose: Option<String>,
+    pub r#type: Option<ChannelType>,
+    pub display_name: Option<ChannelDisplayName>,
+    pub name: Option<ChannelName>,
+    pub header: Option<ChannelHeader>,
+    pub purpose: Option<ChannelPurpose>,
     pub last_post_at: Timestamp,
     pub total_msg_count: i64,
     pub extra_update_at: Timestamp,
-    pub creator_id: Option<String>,
-    pub scheme_id: Option<String>,
+    pub creator_id: Option<UserId>,
+    pub scheme_id: Option<SchemaId>,
     pub props: Option<NotifyProps>,
     pub group_constrained: Option<bool>,
     pub total_msg_count_root: Option<i64>,
@@ -263,8 +282,8 @@ pub struct Channel {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginRequest {
-    pub login_id: String,
-    pub password: String,
+    pub login_id: Login,
+    pub password: Pass,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -302,11 +321,11 @@ pub struct UserDetails {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Team {
     pub id: Option<TeamId>,
-    pub display_name: Option<String>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub email: Option<String>,
-    pub company_name: Option<String>,
+    pub display_name: Option<TeamDisplayName>,
+    pub name: Option<TeamName>,
+    pub description: Option<TeamDescription>,
+    pub email: Option<Email>,
+    pub company_name: Option<CompanyName>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -325,14 +344,14 @@ pub struct TeamMember {
 pub struct User {
     user_id: UserId,
     roles: String,
-    last_viewed_at: i16,
+    last_viewed_at: Timestamp,
     msg_count: i16,
     mention_count: i16,
     mention_count_root: i16,
     urgent_mention_count: i16,
     msg_count_root: i16,
     notify_props: NotifyProps,
-    last_update_at: i16,
+    last_update_at: Timestamp,
     scheme_guest: bool,
     scheme_user: bool,
     scheme_admin: bool,

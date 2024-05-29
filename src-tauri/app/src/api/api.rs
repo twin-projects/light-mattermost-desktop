@@ -58,8 +58,8 @@ async fn login(
 ) -> Result<Response, Error> {
     tracing::info!("Login user: {} to {}", login, uri);
     let login_request = LoginRequest {
-        login_id: login.to_string(),
-        password: password.to_string(),
+        login_id: Login::new(login.to_string()).expect("Invalid login"),
+        password: Pass::new(password.to_string()).expect("Invalid password"),
     };
     let response = handle(
         client,
