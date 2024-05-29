@@ -51,7 +51,9 @@ async fn main() {
             my_teams,
             my_team_members,
             my_channels,
-            change_server
+            change_server,
+            post_threads,
+            channel_posts,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
