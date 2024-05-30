@@ -1,12 +1,14 @@
 <script lang="ts">
 	import type { UserModel } from '$lib/types/login.model';
+	import type { PageData } from '$lib/store';
 	import { invoke } from '@tauri-apps/api/tauri';
 	import { goto } from '$app/navigation';
 	import { getToastStore, initializeStores, Toast } from '@skeletonlabs/skeleton';
-	import { page } from '$app/stores';
 	import { loginCmd, state } from '$lib/store';
-	import { failed_toast, user_logged_in } from '$lib/toast';
+	import { failed_toast, user_logged_in } from '$lib/utils/toast';
 	import { handle_response } from '$lib/utils/server.utils';
+
+	export let data: PageData;
 
 	initializeStores();
 
@@ -16,32 +18,28 @@
 	let password = 'admin123!';
 
 	const toastMessage = (user: UserModel) => {
-        console.info(user);
 		toastStore.trigger(user_logged_in(user?.username));
 	};
 
 	const authenticate = async () => {
-        console.info("authenticate", loginId, password);
-	    const response = await loginCmd(loginId, password);
-        console.log("authenticate response", response);
-        return handle_response(
-            response,
-            (error) => {
-                console.error(error);
-                return toastStore.trigger(failed_toast(error));
-            },
-            (user) => {
-                console.log(user);
-                state.update((value) => ({ ...value, user }));
-                toastMessage(user);
-                return goto('/').catch(console.error);
-            }
-        );
+		const response = await loginCmd(loginId, password);
+		return handle_response(
+			response,
+			(error) => {
+				console.error(error);
+				toastStore.trigger(failed_toast(error));
+			},
+			(user) => {
+				state.update((value) => ({ ...value, user }));
+				toastMessage(user);
+				goto('/').catch(console.error);
+			}
+		);
 	};
 
 	const logout = async () => {
 		await invoke('logout');
-		$page.data.user = null;
+		data.user = null;
 	};
 </script>
 
@@ -49,7 +47,7 @@
 	<Toast />
 	<h1>Login</h1>
 	<div class="w-full max-w-2xl">
-		{#if !$page.data.user}
+		{#if !data?.user}
 			<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" on:submit={authenticate}>
 				<div class="mb-4">
 					<label class="block text-gray-700 text-sm font-bold mb-2" for="username">
@@ -91,7 +89,6 @@
 				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 			>Logout
 			</button>
-			<!--			<UserDetails user={user} />-->
 		{/if}
 	</div>
 </div>

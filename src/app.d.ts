@@ -20,7 +20,9 @@ declare namespace App {
 		teams?: TeamModel[];
 		teamMembers?: TeamMemberModel[];
 	}
-
+	interface Locals {
+		user?: UserModel
+	}
 	// interface Error {}
 	// interface Platform {}
 }

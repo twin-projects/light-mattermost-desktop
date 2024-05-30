@@ -1,7 +1,6 @@
 import type { ServerModel } from '$lib/types/server.model';
 import type { UserModel } from '$lib/types/login.model';
 import type { TeamModel } from '$lib/types/team.model';
-import type { Writable } from 'svelte/store';
 import type { ChannelModel } from '$lib/types/channel.model';
 import type { TeamMemberModel } from '$lib/types/team.member.model';
 import { writable } from 'svelte/store';
