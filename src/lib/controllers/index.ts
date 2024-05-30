@@ -8,7 +8,7 @@ import { left, right} from 'fp-ts/Either';
 import type { TeamMemberModel } from '$lib/types/team.member.model';
 import type { ChannelModel } from '$lib/types/channel.model';
 
-const handle_error = (err) =>
+const handle_error = (err: undefined) =>
     console.error(err);
 
 const parse_error = (error: undefined): ApiErrorModel =>

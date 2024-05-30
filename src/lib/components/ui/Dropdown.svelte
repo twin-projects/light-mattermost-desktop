@@ -20,7 +20,7 @@
 	<span class="capitalize">{value ?? 'Select'}</span>
 </button>
 
-<div class="card w-48 shadow-xl py-2" data-popup="popupCombobox">
+<div class="card w-48 shadow-xl py-2 z-50" data-popup="popupCombobox">
 	<ListBox>
 		<slot name="elements" />
 	</ListBox>

@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getToastStore, initializeStores, Toast } from '@skeletonlabs/skeleton';
-	import { page } from '$app/stores';
-	import { state, addServer } from '$lib/store';
+	import { initializeStores } from '@skeletonlabs/skeleton';
+	import { addServer } from '$lib/store';
 
 	initializeStores();
-
-	const toastStore = getToastStore();
 
 	let server_name = '';
 	let server_address = '';
@@ -14,9 +11,9 @@
 	const addServerHandle = async () => {
 		await addServer(server_name, server_address);
 	};
-	const goToLogin = async (ev) => {
-		ev.preventDefault();
-		ev.stopPropagation();
+	const goToLogin = async (event) => {
+		event.preventDefault();
+		event.stopPropagation();
 		goto('/login');
 	};
 </script>
