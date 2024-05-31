@@ -2,67 +2,61 @@ import type { TeamModel } from '$lib/types/team.model';
 import type { ChangeServerResult, ServerModel } from '$lib/types/server.model';
 import type { UserModel } from '$lib/types/login.model';
 import type { Either } from 'fp-ts/Either';
+import { left, right } from 'fp-ts/Either';
 import type { ApiErrorModel } from '$lib/types/api.error.model';
-import { invoke } from '@tauri-apps/api/tauri';
-import { left, right} from 'fp-ts/Either';
 import type { TeamMemberModel } from '$lib/types/team.member.model';
 import type { ChannelModel } from '$lib/types/channel.model';
+import { invoke, type InvokeArgs } from '@tauri-apps/api/tauri';
 
-const handle_error = (err: undefined) =>
-    console.error(err);
+type CommandCallback<T> = Promise<Either<ApiErrorModel | string, T>>
 
-const parse_error = (error: undefined): ApiErrorModel =>
-	JSON.parse(`${error}`);
+const parse_error = (error: ApiErrorModel | undefined): ApiErrorModel | string => {
+	if (error?.message) {
+		return JSON.parse(`${error}`) as ApiErrorModel;
+	}
+	return `${error}`;
+};
 
-export const get_current_server = async (): Promise<ServerModel | null> =>
-	invoke('get_current_server')
-		.then((server_url) => server_url as ServerModel)
-		.then((current) => {
-			console.log('current server', current.name, current.url);
-			return current;
+const to = <T>(result: unknown): T => result as T;
+
+const handle_command = async <R>(
+	cmd: string,
+	on_success: (result: unknown) => R,
+	args?: InvokeArgs
+): Promise<Either<string | ApiErrorModel, R>> => {
+	const log_label = cmd.replaceAll(/_/g, '');
+	return invoke(cmd, args)
+		.then(result => {
+			console.info(log_label, result);
+			return right(on_success(result));
 		})
-		.catch(() => null);
+		.catch(error => {
+			console.error(log_label, error);
+			return left(parse_error(error));
+		});
+};
 
-export const change_server = async (server: string): Promise<ChangeServerResult | null> =>
-	invoke('change_server', { serverName: server })
-		.then((server_url) => server_url as ChangeServerResult)
-		.then((result) => {
-			const current = result.current;
-			console.log('current server', current.name, current.url);
-			return result;
-		})
-		.catch(() => null);
+export const get_current_server = async (): CommandCallback<ServerModel> =>
+	handle_command('get_current_server', to<ServerModel>);
 
-export const get_all_servers = async (): Promise<ServerModel[] | null> =>
-	invoke('get_all_servers')
-		.then((servers) => servers as ServerModel[])
-		.catch(() => null);
+export const change_server = async (server: string): CommandCallback<ChangeServerResult> =>
+	handle_command('change_server', to<ChangeServerResult>, { serverName: server });
 
-export const get_my_teams = async () =>
-	invoke('my_teams')
-		.then((myTeams) => myTeams as TeamModel[])
-		.catch(() => null);
+export const get_all_servers = async (): CommandCallback<ServerModel[]> =>
+	handle_command('get_all_servers', to<ServerModel[]>);
 
-export const get_my_team_members = async () =>
-	invoke('my_team_members')
-		.then((myTeamMembers) => myTeamMembers as TeamMemberModel[])
-		.catch(handle_error);
+export const get_my_teams = async (): CommandCallback<TeamModel[]> =>
+	handle_command('my_teams', to<TeamModel[]>);
 
-export const get_my_channels = async () =>
-	invoke('my_channels')
-		.then((channels) => channels as ChannelModel[])
-		.catch(handle_error);
+export const get_my_team_members = async (): CommandCallback<TeamMemberModel[]> =>
+	handle_command('my_team_members', to<TeamMemberModel[]>);
 
-export const add_server = async (name: string, url: string): Promise<ServerModel | null> =>
-	invoke('add_server', { name, url })
-		.then((current) => {
-			console.log(`Switch to server url: ${current}`);
-			return current as ServerModel;
-		})
-		.catch(() => null);
+export const get_my_channels = async (): CommandCallback<ChannelModel[]> =>
+	handle_command('my_channels', to<ChannelModel[]>);
 
-export const login = async (login_id: string, password: string): Promise<Either<ApiErrorModel, UserModel>> =>
-	invoke('login', { login: login_id, password })
-		.then((user) => { console.info(user); return right(user as UserModel); })
-		.catch((error) => { console.error(error); return left(parse_error(error)); });
+export const add_server = async (name: string, url: string): CommandCallback<ServerModel> =>
+	handle_command('add_server', to<ServerModel>, { name, url });
+
+export const login = async (login_id: string, password: string): CommandCallback<UserModel> =>
+	handle_command('login', to<UserModel>, { login: login_id, password });
 

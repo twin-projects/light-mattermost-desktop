@@ -6,7 +6,7 @@
 	import { getToastStore, initializeStores, Toast } from '@skeletonlabs/skeleton';
 	import { loginCmd, state } from '$lib/store';
 	import { failed_toast, user_logged_in } from '$lib/utils/toast';
-	import { handle_response } from '$lib/utils/server.utils';
+	import { handle_result } from '$lib/utils/server.utils';
 
 	export let data: PageData;
 
@@ -23,12 +23,9 @@
 
 	const authenticate = async () => {
 		const response = await loginCmd(loginId, password);
-		return handle_response(
+		return handle_result(
 			response,
-			(error) => {
-				console.error(error);
-				toastStore.trigger(failed_toast(error));
-			},
+			(error) => toastStore.trigger(failed_toast(error)),
 			(user) => {
 				state.update((value) => ({ ...value, user }));
 				toastMessage(user);

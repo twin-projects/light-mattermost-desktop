@@ -5,7 +5,7 @@ use models::*;
 
 #[derive(Debug)]
 pub enum ApiEvent {
-    LoginEvent(String, String),
+    Login(String, String),
     MyTeams,
     MyTeamMembers,
     MyChannels,
@@ -15,7 +15,7 @@ pub enum ApiEvent {
 
 #[derive(Debug)]
 pub enum Response {
-    LoginResponse {
+    Login {
         token: AccessToken,
         user_id: String,
         user_name: String,

@@ -7,9 +7,20 @@ export const user_logged_in = (username: string) => ({
 	background: 'variant-filled-success'
 });
 
-export const failed_toast = (error: ApiErrorModel) => ({
-	message: error.message,
-	autohide: false,
-	timeout: 10000,
-	background: 'variant-filled-error'
-});
+export const failed_toast = (error: ApiErrorModel | string) => {
+	if (typeof error !== 'string' && error.message !== undefined) {
+		return {
+			message: error.message,
+			autohide: false,
+			timeout: 10000,
+			background: 'variant-filled-error'
+		};
+	} else {
+		return {
+			message: `${error}`,
+			autohide: false,
+			timeout: 10000,
+			background: 'variant-filled-error'
+		};
+	}
+};
