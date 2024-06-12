@@ -1,19 +1,25 @@
-import type { ApiErrorModel } from '$lib/types/api.error.model';
 import { either } from 'fp-ts';
 import { pipe } from 'fp-ts/function';
+import type { Either } from 'fp-ts/Either';
+import { type PageState, state } from '$lib/store';
 
-export const handle_response = <T>(
-	response: either.Either<ApiErrorModel, T>,
-	on_error: (e: ApiErrorModel) => void,
+export const handle_result = <T, R>(
+	response: either.Either<R, T>,
+	on_error: (e: R) => void,
 	on_success: (data: T) => void
 ): void => {
 	pipe(
 		response,
 		either.fold(
-			(error) => {
-				console.error(error);
-				on_error(error)
-			},
+			(error) => on_error(error),
 			(data) => on_success(data))
 	);
-}
+};
+
+export const result_updater = <E, T>(result: Either<E, T>, apply: (state: PageState, data: T) => PageState) => {
+	pipe(result, either.fold(
+		console.error,
+		(data) => state.update((value) => apply(value, data))
+	));
+};
+

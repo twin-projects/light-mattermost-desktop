@@ -32,12 +32,12 @@ pub async fn login(
     let result = handle_request(
         &http_client,
         &url,
-        &ApiEvent::LoginEvent(login, password),
+        &ApiEvent::Login(login, password),
         None,
     )
     .await;
     tracing::info!("result: {:?}", result);
-    let Response::LoginResponse {
+    let Response::Login {
         token,
         user_id: _id,
         user_name,

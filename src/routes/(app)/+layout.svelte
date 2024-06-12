@@ -1,25 +1,34 @@
 <script lang="ts">
-	import { AppBar, ListBoxItem } from '@skeletonlabs/skeleton';
+	import { AppBar, getToastStore, initializeStores, ListBoxItem, Toast } from '@skeletonlabs/skeleton';
 	import { Icon } from 'svelte-icons-pack';
 	import { FaSolidCirclePlus, FaSolidCircleUser, FaSolidServer } from 'svelte-icons-pack/fa';
 	import { changeServer, state } from '$lib/store';
 	import { goto } from '$app/navigation';
 	import Dropdown from '$lib/components/ui/Dropdown.svelte';
+	import { handle_result } from '$lib/utils/server.utils';
+	import { failed_toast } from '$lib/utils/toast';
 
+	initializeStores();
+
+	const toastStore = getToastStore();
 	let serverValue: string = $state.currentServer?.name ?? 'Select';
 
-	const goToAddServer = async () => {
-		goto('/add_server').catch(console.error);
-	};
+	const goToAddServer = async () => goto('/add_server').catch(console.error);
+
 	const sendChangeServer = async (serverName: string) => {
-		const res = await changeServer(serverName);
-		if (res) {
-			$state.currentServer = res.current;
-			serverValue = res.current.name;
-		}
+		const result = await changeServer(serverName);
+		handle_result(
+			result,
+			(error) => toastStore.trigger(failed_toast(error)),
+			(server) => {
+				$state.currentServer = server.current;
+				serverValue = server.current.name;
+			}
+		);
 	};
 </script>
 
+<Toast />
 <AppBar gridColumns="grid-cols-3" slotDefault="place-self-center" slotTrail="place-content-end">
 	<svelte:fragment slot="lead">
 		<Dropdown value={serverValue}>

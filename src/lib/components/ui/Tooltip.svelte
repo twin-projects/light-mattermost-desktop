@@ -38,7 +38,7 @@
 	</div>
 {/if}
 
-<style>
+<style lang="css">
     .tooltip {
         border: 1px solid #ddd;
         box-shadow: 1px 1px 1px #ddd;

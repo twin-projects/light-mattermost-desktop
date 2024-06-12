@@ -8,11 +8,14 @@ import {
 	add_server,
 	change_server,
 	get_all_servers,
-	get_current_server, get_my_channels,
+	get_current_server,
+	get_my_channels,
 	get_my_team_members,
 	get_my_teams,
 	login
 } from '$lib/controllers';
+import type { ApiErrorModel } from '$lib/types/api.error.model';
+import { result_updater } from '$lib/utils/server.utils';
 
 export const addServer = add_server;
 export const loginCmd = login;
@@ -25,6 +28,7 @@ export interface PageState {
 	teamMembers: TeamMemberModel[];
 	channels: ChannelModel[];
 	servers: ServerModel[];
+	errors?: ApiErrorModel[];
 }
 
 export interface PageData {
@@ -45,45 +49,42 @@ export const defaultState = {
 	teams: [],
 	teamMembers: [],
 	channels: [],
-	servers: []
+	servers: [],
+	errors: []
 } as PageState;
 
 export const state = writable(defaultState);
 
-export const initNavigation = async () => {
+export const refresh = async (on_unlogged?: () => Promise<void>): Promise<PageState> => {
 	let pageState: PageState = defaultState;
 
-	state.subscribe((value) => {
-		pageState = value;
-	});
-	if (pageState.user !== null) {
-		await get_my_teams().then((teams) => {
-			state.update((value) => ({ ...value, teams: teams ?? [] }));
-			console.log('my_teams', teams);
-			pageState.teams = teams ?? [];
-		});
-		await get_my_team_members().then((teamMembers) => {
-			state.update((value) => ({ ...value, teamMembers: teamMembers ?? [] }));
-			console.log('my_team_members', teamMembers);
-			pageState.teamMembers = teamMembers ?? [];
-		});
-		await get_my_channels().then((channels) => {
-			state.update((value) => ({ ...value, channels: channels ?? [] }));
-			console.log('my_channels', channels);
-			pageState.channels = channels ?? [];
-		});
-	}
-	await get_all_servers().then((be_servers) => {
-		if (be_servers) {
-			pageState.servers = be_servers;
-		}
-	});
-	await get_current_server().then((current) => {
-		state.update((value) => ({ ...value, currentServer: current }));
-		pageState.currentServer = current;
-	});
+	state.subscribe((value) => pageState = value);
 
-	console.log(pageState);
+	if (pageState.user === null) {
+		if (on_unlogged) on_unlogged().catch(console.error);
+	} else {
+		await get_my_teams().then((result) =>
+			result_updater(result, (state, teams) =>
+				({ ...state, teams: teams ?? [] }))
+		);
+		await get_my_team_members().then((result) =>
+			result_updater(result, (state, teamMembers) =>
+				({ ...state, teamMembers: teamMembers ?? [] })));
+		await get_my_channels().then((result) =>
+			result_updater(result, (state, channels) =>
+				({ ...state, channels: channels ?? [] })));
+	}
+
+	await get_all_servers().then((result) =>
+		result_updater(result, (state, be_servers) =>
+			({ ...state, servers: be_servers ?? [] })));
+
+	await get_current_server().then((result) =>
+		result_updater(result, (state, current) =>
+			({ ...state, currentServer: current })));
+	state.subscribe((state) => pageState = state);
 
 	return { ...pageState };
 };
+
+export const initNavigation = async (): Promise<PageState> => refresh();

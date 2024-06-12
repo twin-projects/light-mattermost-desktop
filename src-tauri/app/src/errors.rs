@@ -48,4 +48,11 @@ pub enum Error {
     Url(#[from] url::ParseError),
     #[error(transparent)]
     Storage(#[from] StorageError),
+    #[error(transparent)]
+    RequestFailed(#[from] ClientFailed),
+}
+
+#[derive(Debug, derive_more::Display, thiserror::Error)]
+pub struct ClientFailed {
+    pub(crate) reason: String,
 }

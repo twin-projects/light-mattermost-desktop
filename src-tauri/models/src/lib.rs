@@ -1,3 +1,5 @@
+use std::fmt::Formatter;
+
 use nutype::nutype;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -377,7 +379,7 @@ pub struct ServerApiError {
 }
 
 impl std::fmt::Display for ServerApiError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
         formatter.write_str(&serde_json::to_string(self).unwrap())
     }
 }
