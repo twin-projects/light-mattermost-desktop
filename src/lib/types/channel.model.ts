@@ -1,7 +1,9 @@
 import type { NotifyPropsModel } from '$lib/types/notify.props.model';
 
+export type ChannelId = String;
+
 export type ChannelModel = {
-	id: string
+	id: ChannelId
 	create_at: number
 	update_at: number
 	delete_at: number

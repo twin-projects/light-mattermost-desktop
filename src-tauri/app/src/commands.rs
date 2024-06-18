@@ -29,13 +29,7 @@ pub async fn login(
             .clone()
     };
     tracing::debug!("current url: {url:?}");
-    let result = handle_request(
-        &http_client,
-        &url,
-        &ApiEvent::Login(login, password),
-        None,
-    )
-    .await;
+    let result = handle_request(&http_client, &url, &ApiEvent::Login(login, password), None).await;
     tracing::info!("result: {:?}", result);
     let Response::Login {
         token,
@@ -242,7 +236,7 @@ pub async fn post_threads(
 
 #[tauri::command]
 pub async fn channel_posts(
-    channel_id: ChannelId,
+    channel: ChannelId,
     user_state_mutex: State<'_, Mutex<UserState>>,
     server_state_mutex: State<'_, Mutex<ServerState>>,
     http_client: State<'_, Client>,
@@ -259,7 +253,7 @@ pub async fn channel_posts(
     let v = handle_request(
         client,
         &server_url,
-        &ApiEvent::ChannelPosts(channel_id),
+        &ApiEvent::ChannelPosts(channel),
         token.as_ref(),
     )
     .await?;

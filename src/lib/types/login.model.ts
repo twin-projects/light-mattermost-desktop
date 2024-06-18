@@ -1,3 +1,5 @@
+export type UserId = String;
+
 export type UserModel = {
 	username: string;
 	email: string;

@@ -1,4 +1,6 @@
 import type { TeamModel } from '$lib/types/team.model';
+import type { ChannelId } from '$lib/types/channel.model';
+import type { ChannelPosts } from '$lib/types/posts.model';
 import type { ChangeServerResult, ServerModel } from '$lib/types/server.model';
 import type { UserModel } from '$lib/types/login.model';
 import type { Either } from 'fp-ts/Either';
@@ -64,4 +66,7 @@ export const login = async (login_id: string, password: string): CommandCallback
 
 export const logout = async (): CommandCallback<void> =>
 	handle_command('logout', NOOP);
+
+export const channel_posts = async (channel: ChannelId): CommandCallback<ChannelPosts> =>
+    handle_command("channel_posts", to<UserModel>, { channel });
 

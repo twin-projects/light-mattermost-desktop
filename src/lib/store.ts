@@ -12,7 +12,8 @@ import {
 	get_my_channels,
 	get_my_team_members,
 	get_my_teams,
-	login
+	login,
+    channel_posts
 } from '$lib/controllers';
 import type { ApiErrorModel } from '$lib/types/api.error.model';
 import { result_updater } from '$lib/utils/server.utils';
@@ -37,6 +38,7 @@ export interface PageData {
 	teams: TeamModel[];
 	teamMembers: TeamMemberModel[];
 	channels: ChannelModel[];
+    channelPosts?: ChannelPosts;
 	servers: ServerModel[];
 }
 
@@ -50,7 +52,8 @@ export const defaultState = {
 	teamMembers: [],
 	channels: [],
 	servers: [],
-	errors: []
+    channelPosts: null,
+	errors: [],
 } as PageState;
 
 export const state = writable(defaultState);
@@ -70,9 +73,21 @@ export const refresh = async (on_unlogged?: () => Promise<void>): Promise<PageSt
 		await get_my_team_members().then((result) =>
 			result_updater(result, (state, teamMembers) =>
 				({ ...state, teamMembers: teamMembers ?? [] })));
-		await get_my_channels().then((result) =>
-			result_updater(result, (state, channels) =>
-				({ ...state, channels: channels ?? [] })));
+        let localChannels = [];
+		await get_my_channels().then((result) => {
+            console.log(result);
+            localChannels = [...result.right];
+			return result_updater(result, (state, channels) =>
+				({ ...state, channels: channels ?? [] }))
+        });
+
+        if (localChannels.length > 0) {
+            let channel = localChannels[0];
+            console.log("loading posts for ", channel);
+            channel_posts(channel.id).then(result => {
+                result_updater(result, (state, channelPosts) => ({ ...state, channelPosts }))
+            });
+        }
 	}
 
 	await get_all_servers().then((result) =>
@@ -88,3 +103,4 @@ export const refresh = async (on_unlogged?: () => Promise<void>): Promise<PageSt
 };
 
 export const initNavigation = async (): Promise<PageState> => refresh();
+

@@ -1,15 +1,14 @@
 use std::future::Future;
 
-use reqwest::{Client, Method};
+use models::*;
 use reqwest::header::HeaderMap;
+use reqwest::{Client, Method};
 use serde::Serialize;
 use url::Url;
 
-use models::*;
-
 use crate::api::call_event::*;
-use crate::errors::*;
 use crate::errors::Error::ApiError;
+use crate::errors::*;
 
 pub async fn handle_request(
     client: &Client,
@@ -232,30 +231,27 @@ async fn fetch_channel_posts(
     let result = handle(
         client,
         Method::GET,
-        uri.join(&format!("api/v4/channels/{channel_id}/posts"))
-            .unwrap(),
+        uri.join(&format!("channels/{channel_id}/posts")).unwrap(),
         None as Option<()>,
         token,
     )
     .await
     .map_err(|error| {
-        Err(Error::RequestFailed(ClientFailed {
+        Error::RequestFailed(ClientFailed {
             reason: error.to_string(),
-        }))
-    });
-    match result {
-        Ok(response) => {
-            if response.status().is_success() {
-                let posts: PostThread = response.json::<PostThread>().await.unwrap();
-                tracing::trace!("Received posts: {:?}", posts);
-                Ok(Response::ChannelPosts(posts))
-            } else {
-                tracing::error!("Failed to get my channels!");
-                Err(NativeError::FetchChannels)?
-            }
-        }
-        Err(error) => error,
-    }
+        })
+    })?;
+    let response = result.text().await;
+    let txt = response.map_err(|err| {
+        tracing::error!("Channel posts returned: {err}");
+        NativeError::FetchChannels
+    })?;
+    let posts = serde_json::from_str::<PostThread>(&txt).map_err(|err| {
+        tracing::info!("Channel posts txt: {txt}");
+        tracing::error!("Channel posts parse: {err}");
+        NativeError::FetchChannels
+    })?;
+    Ok(Response::ChannelPosts(posts))
 }
 
 async fn fetch_post_thread(
@@ -267,7 +263,7 @@ async fn fetch_post_thread(
     let result = handle(
         client,
         Method::GET,
-        uri.join(&format!("api/v4/posts/{post_id}/thread")).unwrap(),
+        uri.join(&format!("posts/{post_id}/thread")).unwrap(),
         None as Option<()>,
         token,
     )

@@ -1,8 +1,10 @@
 <script lang="ts">
+
 	import type { PageData } from '$lib/store';
 	import { initializeStores, Toast } from '@skeletonlabs/skeleton';
 	import UserTeams from '$lib/components/team/UserTeams.svelte';
 	import Sidebar from '$lib/components/ui/Sidebar.svelte';
+	import ChannelPosts from '$lib/components/ui/channel_posts/ChannelPosts.svelte';
 
 	export let data: PageData;
 
@@ -24,4 +26,6 @@
 	>
 		<UserTeams teams={data.teams} />
 	</section>
+
+    <ChannelPosts thread={null} />
 </div>

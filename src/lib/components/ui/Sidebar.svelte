@@ -28,6 +28,7 @@
 				{#each channels as channel}
 					{#if open}
 						<SidebarElement
+                            id={channel.id}
 							label={channel.display_name}
 							href="/"
 							icon={open ? null : BsChatSquareTextFill}
@@ -35,6 +36,7 @@
 					{:else}
 						<Tooltip title={channel.display_name}>
 							<SidebarElement
+                                id={channel.id}
 								label={channel.display_name}
 								href="/"
 								icon={open ? null : BsChatSquareTextFill}
