@@ -13,7 +13,8 @@ import {
 	get_my_team_members,
 	get_my_teams,
 	login,
-    channel_posts
+    channel_posts,
+    user_unseen,
 } from '$lib/controllers';
 import type { ApiErrorModel } from '$lib/types/api.error.model';
 import { result_updater } from '$lib/utils/server.utils';
@@ -84,7 +85,8 @@ export const refresh = async (on_unlogged?: () => Promise<void>): Promise<PageSt
         if (localChannels.length > 0) {
             let channel = localChannels[0];
             console.log("loading posts for ", channel);
-            channel_posts(channel.id).then(result => {
+            console.log(pageState);
+            user_unseen(pageState.user.user_id, channel.id).then(result => {
                 result_updater(result, (state, channelPosts) => ({ ...state, channelPosts }))
             });
         }

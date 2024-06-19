@@ -33,7 +33,7 @@ pub async fn login(
     tracing::info!("result: {:?}", result);
     let Response::Login {
         token,
-        user_id: _id,
+        user_id,
         user_name,
     } = result?
     else {
@@ -45,6 +45,7 @@ pub async fn login(
     }
     Ok(UserDetails {
         username: user_name.to_owned(),
+        user_id: UserId::new(user_id),
     })
 }
 
@@ -254,6 +255,39 @@ pub async fn channel_posts(
         client,
         &server_url,
         &ApiEvent::ChannelPosts(channel),
+        token.as_ref(),
+    )
+    .await?;
+    let Response::ChannelPosts(v) = v else {
+        return Err(Error::Native(NativeError::UnexpectedResponse));
+    };
+    Ok(v)
+}
+
+#[tauri::command]
+pub async fn user_unseen(
+    user_id: UserId,
+    channel_id: ChannelId,
+    user_state_mutex: State<'_, Mutex<UserState>>,
+    server_state_mutex: State<'_, Mutex<ServerState>>,
+    http_client: State<'_, Client>,
+) -> Result<PostThread, Error> {
+    let state = server_state_mutex.lock().await;
+    let token = user_state_mutex.lock().await.token.clone();
+    let client = &*http_client;
+    let server_url = state
+        .current
+        .as_ref()
+        .ok_or_else(|| NativeError::ServerNotSelected)?
+        .url
+        .to_owned();
+    let v = handle_request(
+        client,
+        &server_url,
+        &ApiEvent::UserUnseen {
+            channel_id,
+            user_id,
+        },
         token.as_ref(),
     )
     .await?;

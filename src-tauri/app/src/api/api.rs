@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use models::*;
 use reqwest::header::HeaderMap;
 use reqwest::{Client, Method};
@@ -9,6 +7,7 @@ use url::Url;
 use crate::api::call_event::*;
 use crate::errors::Error::ApiError;
 use crate::errors::*;
+use crate::user_unseen;
 
 pub async fn handle_request(
     client: &Client,
@@ -30,6 +29,10 @@ pub async fn handle_request(
         ApiEvent::ChannelPosts(channel_id) => {
             fetch_channel_posts(client, server_url, token, channel_id).await
         }
+        ApiEvent::UserUnseen {
+            channel_id,
+            user_id,
+        } => fetch_user_unseen(client, server_url, token, user_id, channel_id).await,
     }
 }
 
@@ -286,4 +289,32 @@ async fn fetch_post_thread(
         }
         Err(error) => error,
     }
+}
+
+pub async fn fetch_user_unseen(
+    client: &Client,
+    uri: Url,
+    token: Option<&AccessToken>,
+    user_id: &UserId,
+    channel_id: &ChannelId,
+) -> Result<Response, Error> {
+    let url = uri.join(&format!("users/{user_id}/channels/{channel_id}/posts/unread?limit_after=30&limit_before=30&skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false")).unwrap();
+    let result = handle(client, Method::GET, url, None as Option<()>, token)
+        .await
+        .map_err(|error| {
+            Error::RequestFailed(ClientFailed {
+                reason: error.to_string(),
+            })
+        })?;
+    let response = result.text().await;
+    let txt = response.map_err(|err| {
+        tracing::error!("Channel posts returned: {err}");
+        NativeError::FetchChannels
+    })?;
+    let posts = serde_json::from_str::<PostThread>(&txt).map_err(|err| {
+        tracing::info!("Channel posts txt: {txt}");
+        tracing::error!("Channel posts parse: {err}");
+        NativeError::FetchChannels
+    })?;
+    Ok(Response::ChannelPosts(posts))
 }

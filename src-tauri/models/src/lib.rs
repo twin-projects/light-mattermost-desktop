@@ -97,7 +97,19 @@ pub struct TeamId(String);
 #[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct UserId(String);
 
-#[nutype(derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(
+    Debug,
+    Display,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize,
+    Deserialize,
+    Deref,
+    From
+))]
 pub struct PostId(String);
 
 #[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
@@ -331,6 +343,7 @@ pub struct UserResponse {
 #[derive(Serialize, Clone, Debug)]
 pub struct UserDetails {
     pub username: String,
+    pub user_id: UserId,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
