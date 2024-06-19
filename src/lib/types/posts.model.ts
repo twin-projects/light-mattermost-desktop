@@ -23,11 +23,15 @@ export type Post = {
     pending_post_id: PostId,
     props: any,
     metadata: MetaAcknowledgement,
-};
+}
+
+export interface PostDict {
+    [postId: PostId] : Post
+}
 
 export type PostThread = {
     order: PostId[],
-    posts: Post[],
+    posts: PostDict,
     next_post_id: PostId?,
     prev_post_id: PostId?,
     has_next: bool,
