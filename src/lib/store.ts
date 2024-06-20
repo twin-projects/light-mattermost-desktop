@@ -15,6 +15,7 @@ import {
 	login,
     channel_posts,
     user_unread,
+    users,
 } from '$lib/controllers';
 import type { ApiErrorModel } from '$lib/types/api.error.model';
 import { result_updater } from '$lib/utils/server.utils';
@@ -23,11 +24,42 @@ export const addServer = add_server;
 export const loginCmd = login;
 export const changeServer = change_server;
 
+const reduceId = array => array.reduce((memo, obj) => ({ 
+        ...memo, 
+        [obj.id]: obj
+    }), {})
+const mapPost = (state, post) => {
+    const user = state.users[post.user_id];
+    if (!user) return; // console.log("no user", post.user_id);
+    post.isSystem = post 
+    && post.type.startsWith("system_")
+    && user.roles.includes("system")
+}
+
+const mapChannelPosts = (state, channelPosts) => {
+    Object.values(channelPosts.posts).forEach(post => mapPost(state, post))
+    return channelPosts
+}
 export const userUnread = async (user, channel) => {
-    user_unread(user.user_id, channel.id).then(result => {
-        result_updater(result, (state, channelPosts) => ({ ...state, channelPosts }))
-    })
-};
+    const result = await user_unread(user.user_id, channel.id)
+    return result_updater(result, (state, channelPosts) => ({ 
+        ...state,
+        channelPosts: mapChannelPosts(state, channelPosts),
+    }))
+}
+
+export const updateUsers = async () => {
+    const result = await users(0)
+    console.log(result);
+    return result_updater(result, (state, users) => ({
+        ...state,
+        users: reduceId(users),
+    }));
+}
+
+export interface UserMap {
+    [id: string]: UserModel;
+}
 
 export interface PageState {
 	currentServer: ServerModel | null;
@@ -42,6 +74,7 @@ export interface PageState {
 export interface PageData {
 	currentServer: ServerModel | null;
 	user: UserModel | null;
+	users: UserMap;
 	teams: TeamModel[];
 	teamMembers: TeamMemberModel[];
 	channels: ChannelModel[];
@@ -91,6 +124,8 @@ export const refresh = async (on_unlogged?: () => Promise<void>): Promise<PageSt
                 channels: channels ?? [],
             }))
         });
+
+        await updateUsers();
 
         if (localChannels.length > 0) {
             let channel = localChannels[0];

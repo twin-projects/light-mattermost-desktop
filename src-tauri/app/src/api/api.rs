@@ -7,7 +7,6 @@ use url::Url;
 use crate::api::call_event::*;
 use crate::errors::Error::ApiError;
 use crate::errors::*;
-use crate::user_unread;
 
 pub async fn handle_request(
     client: &Client,
@@ -33,6 +32,9 @@ pub async fn handle_request(
             channel_id,
             user_id,
         } => fetch_user_unread(client, server_url, token, user_id, channel_id).await,
+        ApiEvent::Users { page, per_page } => {
+            users(client, server_url, token, *page, *per_page).await
+        }
     }
 }
 
@@ -318,4 +320,39 @@ pub async fn fetch_user_unread(
         NativeError::FetchChannels
     })?;
     Ok(Response::ChannelPosts(posts))
+}
+
+pub async fn users(
+    client: &Client,
+    uri: Url,
+    token: Option<&AccessToken>,
+    page: Option<u32>,
+    per_page: Option<u32>,
+) -> Result<Response, Error> {
+    let url = uri
+        .join(&format!(
+            "users?page={page}&per_page={per_page}",
+            page = page.unwrap_or_default(),
+            per_page = per_page.unwrap_or(100)
+        ))
+        .unwrap();
+    tracing::info!("Requesting: {url:?}");
+    let result = handle(client, Method::GET, url, None as Option<()>, token)
+        .await
+        .map_err(|error| {
+            Error::RequestFailed(ClientFailed {
+                reason: error.to_string(),
+            })
+        })?;
+    let response = result.text().await;
+    let txt = response.map_err(|err| {
+        tracing::error!("Users returned: {err}");
+        NativeError::FetchUsers
+    })?;
+    let users = serde_json::from_str::<Vec<UserResponse>>(&txt).map_err(|err| {
+        tracing::info!("Users txt: {txt}");
+        tracing::error!("Users parse: {err}");
+        NativeError::FetchUsers
+    })?;
+    Ok(Response::Users(users))
 }

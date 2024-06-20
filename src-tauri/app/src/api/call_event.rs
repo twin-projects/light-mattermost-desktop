@@ -15,6 +15,10 @@ pub enum ApiEvent {
         channel_id: ChannelId,
         user_id: UserId,
     },
+    Users {
+        page: Option<u32>,
+        per_page: Option<u32>,
+    },
 }
 
 #[derive(Debug)]
@@ -31,6 +35,7 @@ pub enum Response {
     MyChannels(Vec<Channel>),
     ChannelThreads(PostThread),
     ChannelPosts(PostThread),
+    Users(Vec<UserResponse>),
 }
 
 impl fmt::Display for Response {

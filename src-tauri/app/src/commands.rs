@@ -296,3 +296,36 @@ pub async fn user_unread(
     };
     Ok(v)
 }
+
+#[tauri::command]
+pub async fn users(
+    page: u32,
+    per_page: u32,
+    user_state_mutex: State<'_, Mutex<UserState>>,
+    server_state_mutex: State<'_, Mutex<ServerState>>,
+    http_client: State<'_, Client>,
+) -> Result<Vec<UserResponse>, Error> {
+    let state = server_state_mutex.lock().await;
+    let token = user_state_mutex.lock().await.token.clone();
+    let client = &*http_client;
+    let server_url = state
+        .current
+        .as_ref()
+        .ok_or_else(|| NativeError::ServerNotSelected)?
+        .url
+        .to_owned();
+    let v = handle_request(
+        client,
+        &server_url,
+        &ApiEvent::Users {
+            page: Some(page),
+            per_page: Some(per_page),
+        },
+        token.as_ref(),
+    )
+    .await?;
+    let Response::Users(v) = v else {
+        return Err(Error::Native(NativeError::UnexpectedResponse));
+    };
+    Ok(v)
+}

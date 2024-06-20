@@ -71,6 +71,7 @@ export const channel_posts = async (channel: ChannelId): CommandCallback<Channel
     handle_command("channel_posts", to<ChannelPosts>, { channel });
 
 export const user_unread = async (user_id: UserId, channel_id: ChannelId): CommandCallback<ChannelPosts> =>
-    console.log({user_id, channel_id}) ||
     handle_command("user_unread", to<ChannelPosts>, { channelId: channel_id, userId: user_id });
 
+export const users = async (page: int): CommandCallback<ChannelPosts> =>
+    handle_command("users", to<ChannelPosts>, { page, perPage: 100 });

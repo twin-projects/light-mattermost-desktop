@@ -55,6 +55,7 @@ async fn main() {
             post_threads,
             channel_posts,
             user_unread,
+            users,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

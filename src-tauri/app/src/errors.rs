@@ -26,6 +26,8 @@ pub enum NativeError {
     FetchChannels,
     #[error("Unable to fetch posts from mattermost server")]
     FetchPosts,
+    #[error("Unable to fetch users from mattermost server")]
+    FetchUsers,
     #[error("Unable to perform login, mattermost server return an error")]
     PerformLogin,
     #[error("Unknown server")]
