@@ -18,13 +18,15 @@ const parse_error = (error: ApiErrorModel | undefined): ApiErrorModel | string =
 };
 
 const to = <T>(result: unknown): T => result as T;
+const NOOP = () => {
+};
 
 const handle_command = async <R>(
 	cmd: string,
 	on_success: (result: unknown) => R,
 	args?: InvokeArgs
 ): Promise<Either<string | ApiErrorModel, R>> => {
-	const log_label = cmd.replaceAll(/_/g, '');
+	const log_label = cmd.replaceAll(/_/g, ' ');
 	return invoke(cmd, args)
 		.then(result => {
 			console.info(log_label, result);
@@ -59,4 +61,7 @@ export const add_server = async (name: string, url: string): CommandCallback<Ser
 
 export const login = async (login_id: string, password: string): CommandCallback<UserModel> =>
 	handle_command('login', to<UserModel>, { login: login_id, password });
+
+export const logout = async (): CommandCallback<void> =>
+	handle_command('logout', NOOP);
 

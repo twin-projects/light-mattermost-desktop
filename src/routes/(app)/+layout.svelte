@@ -7,6 +7,8 @@
 	import Dropdown from '$lib/components/ui/Dropdown.svelte';
 	import { handle_result } from '$lib/utils/server.utils';
 	import { failed_toast } from '$lib/utils/toast';
+	import { logout } from '$lib/controllers';
+	import type { ApiErrorModel } from '$lib/types/api.error.model';
 
 	initializeStores();
 
@@ -15,16 +17,19 @@
 
 	const goToAddServer = async () => goto('/add_server').catch(console.error);
 
+	const toast_error = (error: string | ApiErrorModel) => toastStore.trigger(failed_toast(error));
+
 	const sendChangeServer = async (serverName: string) => {
-		const result = await changeServer(serverName);
-		handle_result(
-			result,
-			(error) => toastStore.trigger(failed_toast(error)),
-			(server) => {
+		await changeServer(serverName).then((change_server_result) => handle_result(
+			change_server_result,
+			toast_error,
+			async (server) => {
+				await logout().then(logoutResult => handle_result(logoutResult, toast_error, () => $state.user = null));
 				$state.currentServer = server.current;
 				serverValue = server.current.name;
+				goto('/login').catch(console.error);
 			}
-		);
+		));
 	};
 </script>
 

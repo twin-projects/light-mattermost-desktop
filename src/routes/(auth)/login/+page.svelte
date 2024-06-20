@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { UserModel } from '$lib/types/login.model';
 	import type { PageData } from '$lib/store';
-	import { invoke } from '@tauri-apps/api/tauri';
+	import { loginCmd, state } from '$lib/store';
 	import { goto } from '$app/navigation';
 	import { getToastStore, initializeStores, Toast } from '@skeletonlabs/skeleton';
-	import { loginCmd, state } from '$lib/store';
 	import { failed_toast, user_logged_in } from '$lib/utils/toast';
 	import { handle_result } from '$lib/utils/server.utils';
 
@@ -33,18 +32,13 @@
 			}
 		);
 	};
-
-	const logout = async () => {
-		await invoke('logout');
-		data.user = null;
-	};
 </script>
 
 <div class="card p-4 flex gap-4 flex-col">
 	<Toast />
 	<h1>Login</h1>
 	<div class="w-full max-w-2xl">
-		{#if !data?.user}
+		{#if !$state.user}
 			<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" on:submit={authenticate}>
 				<div class="mb-4">
 					<label class="block text-gray-700 text-sm font-bold mb-2" for="username">
@@ -80,12 +74,6 @@
 					</button>
 				</div>
 			</form>
-		{:else}
-			<button
-				on:click={logout}
-				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-			>Logout
-			</button>
 		{/if}
 	</div>
 </div>
