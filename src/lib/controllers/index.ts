@@ -70,7 +70,7 @@ export const logout = async (): CommandCallback<void> =>
 export const channel_posts = async (channel: ChannelId): CommandCallback<ChannelPosts> =>
     handle_command("channel_posts", to<ChannelPosts>, { channel });
 
-export const user_unseen = async (user_id: UserId, channel_id: ChannelId): CommandCallback<ChannelPosts> =>
+export const user_unread = async (user_id: UserId, channel_id: ChannelId): CommandCallback<ChannelPosts> =>
     console.log({user_id, channel_id}) ||
-    handle_command("user_unseen", to<ChannelPosts>, { channelId: channel_id, userId: user_id });
+    handle_command("user_unread", to<ChannelPosts>, { channelId: channel_id, userId: user_id });
 

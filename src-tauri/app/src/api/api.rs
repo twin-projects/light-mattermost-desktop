@@ -7,7 +7,7 @@ use url::Url;
 use crate::api::call_event::*;
 use crate::errors::Error::ApiError;
 use crate::errors::*;
-use crate::user_unseen;
+use crate::user_unread;
 
 pub async fn handle_request(
     client: &Client,
@@ -29,10 +29,10 @@ pub async fn handle_request(
         ApiEvent::ChannelPosts(channel_id) => {
             fetch_channel_posts(client, server_url, token, channel_id).await
         }
-        ApiEvent::UserUnseen {
+        ApiEvent::UserUnread {
             channel_id,
             user_id,
-        } => fetch_user_unseen(client, server_url, token, user_id, channel_id).await,
+        } => fetch_user_unread(client, server_url, token, user_id, channel_id).await,
     }
 }
 
@@ -291,7 +291,7 @@ async fn fetch_post_thread(
     }
 }
 
-pub async fn fetch_user_unseen(
+pub async fn fetch_user_unread(
     client: &Client,
     uri: Url,
     token: Option<&AccessToken>,
@@ -299,6 +299,7 @@ pub async fn fetch_user_unseen(
     channel_id: &ChannelId,
 ) -> Result<Response, Error> {
     let url = uri.join(&format!("users/{user_id}/channels/{channel_id}/posts/unread?limit_after=30&limit_before=30&skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false")).unwrap();
+    tracing::info!("Requesting: {url:?}");
     let result = handle(client, Method::GET, url, None as Option<()>, token)
         .await
         .map_err(|error| {

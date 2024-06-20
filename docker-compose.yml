@@ -3,15 +3,10 @@
 services:
   postgres:
     image: postgres:latest
-    security_opt:
-      - no-new-privileges:true
-    pids_limit: 100
-    read_only: true
     tmpfs:
       - /tmp
-      - /var/run/postgresql
     volumes:
-      - /tmp/psql:/var/lib/postgresql/data
+      - ./tmp/psql:/var/lib/postgresql/data
     environment:
       TZ: UTC
       POSTGRES_USER: mattermost

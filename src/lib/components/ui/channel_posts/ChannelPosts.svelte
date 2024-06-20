@@ -7,7 +7,7 @@
 
 <section data-thread-len={thread?.order.length} class="">
 {#if thread}
-    {#each thread.order as postId}
+    {#each thread.order.reverse() as postId}
         <ChannelPost post={thread.posts[postId]} />
     {/each}
 {:else}

@@ -265,7 +265,7 @@ pub async fn channel_posts(
 }
 
 #[tauri::command]
-pub async fn user_unseen(
+pub async fn user_unread(
     user_id: UserId,
     channel_id: ChannelId,
     user_state_mutex: State<'_, Mutex<UserState>>,
@@ -284,7 +284,7 @@ pub async fn user_unseen(
     let v = handle_request(
         client,
         &server_url,
-        &ApiEvent::UserUnseen {
+        &ApiEvent::UserUnread {
             channel_id,
             user_id,
         },
