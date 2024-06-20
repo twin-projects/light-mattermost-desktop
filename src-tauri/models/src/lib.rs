@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fmt::Formatter;
 
 use nutype::nutype;
@@ -96,7 +97,19 @@ pub struct TeamId(String);
 #[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
 pub struct UserId(String);
 
-#[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
+#[nutype(derive(
+    Debug,
+    Display,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize,
+    Deserialize,
+    Deref,
+    From
+))]
 pub struct PostId(String);
 
 #[nutype(derive(Debug, Display, Clone, PartialEq, Serialize, Deserialize, Deref, From))]
@@ -213,9 +226,12 @@ pub struct MetaPriority {
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct MetaAcknowledgement {
-    pub user_id: UserId,
-    pub post_id: PostId,
-    pub acknowledged_at: Timestamp,
+    #[serde(default)]
+    pub user_id: Option<UserId>,
+    #[serde(default)]
+    pub post_id: Option<PostId>,
+    #[serde(default)]
+    pub acknowledged_at: Option<Timestamp>,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -237,23 +253,32 @@ pub struct Post {
     pub create_at: Timestamp,
     pub user_id: UserId,
     pub channel_id: ChannelId,
+    #[serde(default)]
     pub root_id: String,
+    #[serde(default)]
     pub original_id: String,
     pub message: Message,
     #[serde(rename = "type")]
     pub post_type: PostType,
-    pub hashtag: HashTag,
+    #[serde(default)]
+    pub hashtag: Option<HashTag>,
+    #[serde(default)]
     pub file_ids: Vec<FileId>,
-    pub pending_post_id: PostId,
+    #[serde(default)]
+    pub pending_post_id: Option<PostId>,
+    #[serde(default)]
     pub props: serde_json::Value,
-    pub metadata: MetaAcknowledgement,
+    #[serde(default)]
+    pub metadata: Option<MetaAcknowledgement>,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PostThread {
     pub order: Vec<PostId>,
-    pub posts: Vec<Post>,
+    pub posts: BTreeMap<PostId, Post>,
+    #[serde(default)]
     pub next_post_id: Option<PostId>,
+    #[serde(default)]
     pub prev_post_id: Option<PostId>,
     pub has_next: bool,
 }
@@ -318,6 +343,7 @@ pub struct UserResponse {
 #[derive(Serialize, Clone, Debug)]
 pub struct UserDetails {
     pub username: String,
+    pub user_id: UserId,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

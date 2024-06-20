@@ -11,6 +11,10 @@ pub enum ApiEvent {
     MyChannels,
     PostThreads(PostId),
     ChannelPosts(ChannelId),
+    UserUnread {
+        channel_id: ChannelId,
+        user_id: UserId,
+    },
 }
 
 #[derive(Debug)]
