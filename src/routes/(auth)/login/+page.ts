@@ -7,5 +7,5 @@ export const load = async () => {
 	const result = await initNavigation();
 	return {
 		...result
-	}
+	};
 };
