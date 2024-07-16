@@ -23,10 +23,3 @@ export const result_updater = <E, T>(result: Either<E, T>, apply: (state: PageSt
 	));
 };
 
-export const unwrap = <E, T>(result: Either<E, T>, apply: (data: T) => void) => {
-	pipe(result, either.fold(
-		console.error,
-		(data) => apply(data)
-	));
-};
-

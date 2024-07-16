@@ -1,5 +1,4 @@
 export type UserModel = {
-	id: string
 	username: string;
 	email: string;
 	nickname: string;

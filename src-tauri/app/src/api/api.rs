@@ -1,3 +1,5 @@
+use std::future::Future;
+
 use reqwest::{Client, Method};
 use reqwest::header::HeaderMap;
 use serde::Serialize;
@@ -230,7 +232,8 @@ async fn fetch_channel_posts(
     let result = handle(
         client,
         Method::GET,
-        uri.join(&format!("channels/{channel_id}/posts")).unwrap(),
+        uri.join(&format!("api/v4/channels/{channel_id}/posts"))
+            .unwrap(),
         None as Option<()>,
         token,
     )
@@ -240,7 +243,6 @@ async fn fetch_channel_posts(
             reason: error.to_string(),
         }))
     });
-
     match result {
         Ok(response) => {
             if response.status().is_success() {
@@ -248,8 +250,7 @@ async fn fetch_channel_posts(
                 tracing::trace!("Received posts: {:?}", posts);
                 Ok(Response::ChannelPosts(posts))
             } else {
-                let error = response.json::<ServerApiError>().await.unwrap();
-                tracing::error!("Failed to get fetch channel posts! {:?}", error);
+                tracing::error!("Failed to get my channels!");
                 Err(NativeError::FetchChannels)?
             }
         }

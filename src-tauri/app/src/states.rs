@@ -5,7 +5,6 @@ use url::Url;
 #[derive(Serialize, Clone, Default)]
 pub(crate) struct UserState {
     #[serde(skip_serializing)]
-    pub(crate) id: Option<UserId>,
     pub(crate) token: Option<AccessToken>,
     pub(crate) user_details: Option<UserDetails>,
     pub(crate) teams: Option<Vec<Team>>,
