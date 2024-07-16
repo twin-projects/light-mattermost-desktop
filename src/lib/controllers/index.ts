@@ -7,6 +7,7 @@ import type { ApiErrorModel } from '$lib/types/api.error.model';
 import type { TeamMemberModel } from '$lib/types/team.member.model';
 import type { ChannelModel } from '$lib/types/channel.model';
 import { invoke, type InvokeArgs } from '@tauri-apps/api/tauri';
+import type { PostThread } from '$lib/types/post.thread.model';
 
 type CommandCallback<T> = Promise<Either<ApiErrorModel | string, T>>
 
@@ -64,4 +65,7 @@ export const login = async (login_id: string, password: string): CommandCallback
 
 export const logout = async (): CommandCallback<void> =>
 	handle_command('logout', NOOP);
+
+export const channel_posts = async (channel_id: string): CommandCallback<PostThread> =>
+	handle_command('channel_posts', to<PostThread>, { channelId: channel_id });
 

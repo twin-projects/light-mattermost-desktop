@@ -8,6 +8,7 @@
 	export let channels: ChannelModel[];
 	export let open = true;
 	export let sidebar_action: () => void
+	export let select: (label: string) => void
 
 </script>
 <div class={`fixed flex flex-col bg-white h-full border-r ${open ? 'w-48' : 'w-16' }`}>
@@ -28,15 +29,17 @@
 				{#each channels as channel}
 					{#if open}
 						<SidebarElement
+							select={select}
+							id={channel.id}
 							label={channel.display_name}
-							href="/"
 							icon={open ? null : BsChatSquareTextFill}
 						/>
 					{:else}
 						<Tooltip title={channel.display_name}>
 							<SidebarElement
-								label={channel.display_name}
-								href="/"
+								select={select}
+								label=""
+								id=""
 								icon={open ? null : BsChatSquareTextFill}
 							/>
 						</Tooltip>

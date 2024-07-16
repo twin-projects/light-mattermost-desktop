@@ -39,7 +39,7 @@ pub async fn login(
     tracing::info!("result: {:?}", result);
     let Response::Login {
         token,
-        user_id: _id,
+        user_id,
         user_name,
     } = result?
     else {
@@ -50,6 +50,7 @@ pub async fn login(
         user_state_mutex.lock().await.token = Some(token.to_owned());
     }
     Ok(UserDetails {
+        id: user_id.to_owned(),
         username: user_name.to_owned(),
     })
 }
