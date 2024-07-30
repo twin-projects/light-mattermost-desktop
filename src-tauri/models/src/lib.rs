@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Formatter;
 
 use nutype::nutype;
@@ -213,9 +214,9 @@ pub struct MetaPriority {
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct MetaAcknowledgement {
-    pub user_id: UserId,
-    pub post_id: PostId,
-    pub acknowledged_at: Timestamp,
+    pub user_id: Option<UserId>,
+    pub post_id: Option<PostId>,
+    pub acknowledged_at: Option<Timestamp>,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -235,24 +236,24 @@ pub struct Post {
     pub update_at: Timestamp,
     pub delete_at: Timestamp,
     pub create_at: Timestamp,
-    pub user_id: UserId,
+    pub user_id: Option<UserId>,
     pub channel_id: ChannelId,
     pub root_id: String,
     pub original_id: String,
     pub message: Message,
     #[serde(rename = "type")]
     pub post_type: PostType,
-    pub hashtag: HashTag,
-    pub file_ids: Vec<FileId>,
+    pub hashtag: Option<HashTag>,
+    pub file_ids: Option<Vec<FileId>>,
     pub pending_post_id: PostId,
     pub props: serde_json::Value,
-    pub metadata: MetaAcknowledgement,
+    pub metadata: Option<MetaAcknowledgement>,
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PostThread {
     pub order: Vec<PostId>,
-    pub posts: Vec<Post>,
+    pub posts: HashMap<String, Post>,
     pub next_post_id: Option<PostId>,
     pub prev_post_id: Option<PostId>,
     pub has_next: bool,
@@ -317,6 +318,7 @@ pub struct UserResponse {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct UserDetails {
+    pub id: String,
     pub username: String,
 }
 
@@ -374,7 +376,7 @@ pub struct NotifyProps {
 pub struct ServerApiError {
     pub id: String,
     pub message: String,
-    pub request_id: String,
+    pub request_id: Option<String>,
     pub status_code: i16,
 }
 

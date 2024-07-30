@@ -1,4 +1,5 @@
 import type { NotifyPropsModel } from '$lib/types/notify.props.model';
+import type { PostModel } from '$lib/types/post.thread.model';
 
 export type ChannelModel = {
 	id: string
@@ -20,4 +21,11 @@ export type ChannelModel = {
 	group_constrained: false,
 	total_msg_count_root: number
 	last_root_post_at: number
+	post_thread: PostThread
+}
+
+export type PostThread = {
+	order: string[],
+	posts: PostModel[],
+	has_next: boolean,
 }

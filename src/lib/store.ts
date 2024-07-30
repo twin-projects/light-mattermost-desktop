@@ -7,6 +7,7 @@ import { writable } from 'svelte/store';
 import {
 	add_server,
 	change_server,
+	channel_posts,
 	get_all_servers,
 	get_current_server,
 	get_my_channels,
@@ -15,7 +16,8 @@ import {
 	login
 } from '$lib/controllers';
 import type { ApiErrorModel } from '$lib/types/api.error.model';
-import { result_updater } from '$lib/utils/server.utils';
+import { result_updater, unwrap } from '$lib/utils/server.utils';
+import type { PostModel } from '$lib/types/post.thread.model';
 
 export const addServer = add_server;
 export const loginCmd = login;
@@ -32,6 +34,7 @@ export interface PageState {
 }
 
 export interface PageData {
+	id: string;
 	currentServer: ServerModel | null;
 	user: UserModel | null;
 	teams: TeamModel[];
@@ -55,6 +58,39 @@ export const defaultState = {
 
 export const state = writable(defaultState);
 
+const refresh_login_user = async () => {
+	await get_my_teams().then((result) =>
+		result_updater(result, (state, teams) =>
+			({ ...state, teams: teams ?? [] }))
+	);
+	await get_my_team_members().then((result) =>
+		result_updater(result, (state, teamMembers) =>
+			({ ...state, teamMembers: teamMembers ?? [] })));
+
+	await get_my_channels()
+		.then((result) => {
+				result_updater(result,
+					(state, channels) => {
+						channels.forEach(channel => {
+							channel_posts(channel.id).then(post_result => {
+									unwrap(post_result, (post_thread) => {
+										const posts: PostModel[] = [];
+										for (const key in post_thread.posts) {
+											// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+											// @ts-expect-error
+											posts.push(post_thread.posts[key]);
+										}
+										channel.post_thread = { order: post_thread.order, posts, has_next: post_thread.has_next };
+									});
+								}
+							);
+						});
+						return ({ ...state, channels: channels ?? [] });
+					});
+			}
+		);
+};
+
 export const refresh = async (on_unlogged?: () => Promise<void>): Promise<PageState> => {
 	let pageState: PageState = defaultState;
 
@@ -63,16 +99,7 @@ export const refresh = async (on_unlogged?: () => Promise<void>): Promise<PageSt
 	if (pageState.user === null) {
 		if (on_unlogged) on_unlogged().catch(console.error);
 	} else {
-		await get_my_teams().then((result) =>
-			result_updater(result, (state, teams) =>
-				({ ...state, teams: teams ?? [] }))
-		);
-		await get_my_team_members().then((result) =>
-			result_updater(result, (state, teamMembers) =>
-				({ ...state, teamMembers: teamMembers ?? [] })));
-		await get_my_channels().then((result) =>
-			result_updater(result, (state, channels) =>
-				({ ...state, channels: channels ?? [] })));
+		await refresh_login_user();
 	}
 
 	await get_all_servers().then((result) =>
