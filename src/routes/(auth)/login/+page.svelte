@@ -16,9 +16,7 @@
 	let loginId = 'admin';
 	let password = 'admin123!';
 
-	const toastMessage = (user: UserModel) => {
-		toastStore.trigger(user_logged_in(user?.username));
-	};
+	const toastMessage = (user: UserModel) => toastStore.trigger(user_logged_in(user?.username));
 
 	const authenticate = async () => {
 		const response = await loginCmd(loginId, password);
