@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { state } from '$lib/store';
 </script>
 
 <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
